@@ -11,7 +11,24 @@ namespace TestProj.NativeGen
     /// </summary>
     public class Candidate
     {
-        public int Fitness { get; set; }
+        /// <summary>
+        /// Значение функции приспособленности
+        /// </summary>
+        public double Fitness { get; set; }
+
+        /// <summary>
+        /// Десятичное представление числа
+        /// </summary>
+        public int DecValue { get; set; }
+
+        /// <summary>
+        /// Положительное число
+        /// </summary>
+        public bool IsPositive { get { return DecValue >= 0; } }
+
+        /// <summary>
+        /// Хромосома (двоичное представление числа)
+        /// </summary>
         public Chromosome Chromosome { get; set; }
     }
 }
