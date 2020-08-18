@@ -10,18 +10,29 @@ using TestProj.NativeGen;
 using TestProj.MathFeatures;
 using DevExpress.XtraEditors;
 using System.Collections;
+using System.Diagnostics;
+using DevExpress.Charts.Native;
+using DevExpress.XtraCharts;
+using DevExpress.Utils;
+using DevExpress.XtraEditors.Repository;
 
 namespace TestProj
 {
     public partial class Form1 : DevExpress.XtraEditors.XtraForm
     {
-        public const double MutationProbability = 0.7; //0.3
-        public const double MutationGeneProbability = 0.5;
-        public const int PopulationSize = 4;
-        public const int GenerationSize = 5;
-        public const int TournamentSize = 4;
+        public Stopwatch CalcTimer { get; set; }
 
         Random random = new Random();
+
+        /// <summary>
+        /// Количество поколений
+        /// </summary>
+        public int GenerationSize { get; set; }
+
+        /// <summary>
+        /// Размер популяции
+        /// </summary>
+        public int PopulationSize { get; set; }
 
         /// <summary>
         /// Список значений для контрола "Шаг функции"
@@ -49,20 +60,46 @@ namespace TestProj
         public int CrossDevidePointCount { get; set; }
 
         /// <summary>
+        /// Вероятность мутации
+        /// </summary>
+        public double MutationProbability { get; set; }
+
+        /// <summary>
         /// Количество генов для мутирования
         /// </summary>
         public int MutateGeneCount { get; set; }
 
         /// <summary>
+        /// Вероятность мутации гена
+        /// </summary>
+        public double MutationGeneProbability { get; set; }
+
+        /// <summary>
         /// Порог для отбора усечением
         /// </summary>
-        private double SelectionTreshold { get; set; }
+        public double SelectionTreshold { get; set; }
+
+        /// <summary>
+        /// Размер группы
+        /// </summary>
+        public int GroupSize { get; set; }
+
+        /// <summary>
+        /// Отбирать дубликаты в следующее поколение
+        /// </summary>
+        public bool IsDuplicate { get; set; }
+
+        /// <summary>
+        /// Отображать промежуточные данные для турнира
+        /// </summary>
+        public bool IsDisplay { get; set; }
 
         /// <summary>
         /// Список функций
         /// </summary>
         List<string> funcList = new List<string>()
         {
+            "x",
             "x^2",
             "x+2",
             "x^2+2*x+10",
@@ -104,26 +141,17 @@ namespace TestProj
         /// </summary>
         public List<Candidate> Population { get; set; }
 
+        /// <summary>
+        /// Промежуточная популяция, которая хранит только потомков
+        /// </summary>
         public List<Candidate> IntermediatePopulation { get; set; }
+
+        public bool IsOnlyPositive { get { return FunctionStartValue >= 0; } }
 
         public Form1()
         {
             InitializeComponent();
-
-            FunctionStep = Convert.ToDouble(seFunctionStep.EditValue);
-            FunctionStartValue = Convert.ToInt32(seFunctionStartValue.EditValue);
-            FunctionFinishValue = Convert.ToInt32(seFunctionFinishValue.EditValue);
-
-            cmboFunction.Properties.Items.AddRange(funcList);
-            cmboFunction.EditValue = cmboFunction.Properties.Items[0];
-
             LoadConfig();
-
-            seDevidePointCount.Enabled = SelectCross == SelectCross.CrossingoverNPoint ? true : false;
-
-            seMutateGeneCount.Enabled = SelectMutate == SelectMutate.MutateNPoint ? true : false;
-
-            SelectionTreshold = Convert.ToInt32(seSelectionTreshold.EditValue);
         }
 
         #region Загрузка значений в выпадающие списки конфигураций генетического алгоритма
@@ -133,11 +161,53 @@ namespace TestProj
         /// </summary>
         private void LoadConfig()
         {
-            LoadSelectTarget();
-            LoadSelectParent();
-            LoadSelectCross();
-            LoadSelectMutate();
-            LoadSelectSelection();
+            try
+            {
+                //Загрузка конфигураций методик генетического алгоритма
+                LoadSelectTarget();
+                LoadSelectParent();
+                LoadSelectCross();
+                LoadSelectMutate();
+                LoadSelectSelection();
+
+                //Загрузка значений списка целевых функций
+                cmboFunction.Properties.Items.AddRange(funcList);
+                cmboFunction.EditValue = cmboFunction.Properties.Items[0];
+
+                //Выставление параметров функции
+                FunctionStep = Convert.ToDouble(seFunctionStep.EditValue);
+                FunctionStartValue = Convert.ToInt32(seFunctionStartValue.EditValue);
+                FunctionFinishValue = Convert.ToInt32(seFunctionFinishValue.EditValue);
+
+                //Выставление настроек ГА
+                GenerationSize = Convert.ToInt32(seGenerationSize.EditValue);
+                PopulationSize = Convert.ToInt32(sePopulationSize.EditValue);
+                SelectionTreshold = Convert.ToDouble(seSelectionTreshold.EditValue);
+                MutationProbability = Convert.ToDouble(seMutationProbability.EditValue);
+                MutationGeneProbability = Convert.ToDouble(seMutationGeneProbability.EditValue);
+                CrossDevidePointCount = Convert.ToInt32(seDevidePointCount.EditValue);
+                MutateGeneCount = Convert.ToInt32(seMutateGeneCount.EditValue);
+                GroupSize = Convert.ToInt32(seGroupSize.EditValue);
+                IsDuplicate = Convert.ToBoolean(ceIsDuplicate.EditValue);
+                IsDisplay = Convert.ToBoolean(ceIsDisplay.EditValue);
+
+                // Блокирование контролов в зависимости от настроек ГА
+                seDevidePointCount.Enabled = SelectCross == SelectCross.CrossingoverNPoint ? true : false;
+                seMutateGeneCount.Enabled = SelectMutate == SelectMutate.MutateNPoint ? true : false;
+                seMutationGeneProbability.Enabled = SelectMutate == SelectMutate.DensityMutate ? true : false;
+                seSelectionTreshold.Enabled = SelectSelection == SelectSelection.TruncationSelection ? true : false;
+                seGroupSize.Enabled = SelectSelection == SelectSelection.ClassicTournament || SelectSelection == SelectSelection.EqualProbabilityTournament || SelectSelection == SelectSelection.RouletteTournament ? true : false;
+                ceIsDuplicate.Enabled = SelectSelection == SelectSelection.RouletteSelection || SelectSelection == SelectSelection.RouletteTournament ? true : false;
+                ceIsDisplay.Enabled = SelectSelection == SelectSelection.RouletteSelection || SelectSelection == SelectSelection.ClassicTournament || SelectSelection == SelectSelection.EqualProbabilityTournament || SelectSelection == SelectSelection.RouletteTournament ? true : false;
+
+                ChangeRangeTrack();
+
+                CalcTimer = new Stopwatch();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         /// <summary>
@@ -168,6 +238,9 @@ namespace TestProj
             lueSelectTarget.Properties.DataSource = enumList;
 
             lueSelectTarget.EditValue = enumList[0].value;
+
+            lueSelectTarget.Properties.ShowHeader = false;
+            lueSelectTarget.Properties.ShowFooter = false;
 
             SelectTarget = (SelectTarget)enumList[0].value;
         }
@@ -201,6 +274,9 @@ namespace TestProj
 
             lueSelectParent.EditValue = enumList[0].value;
 
+            lueSelectParent.Properties.ShowHeader = false;
+            lueSelectParent.Properties.ShowFooter = false;
+
             SelectParent = (SelectParent)enumList[0].value;
         }
 
@@ -219,7 +295,7 @@ namespace TestProj
             .OrderBy(item => item.value)
             .ToList();
 
-            lueSelectParent.Properties.Columns.Add(new DevExpress.XtraEditors.Controls.LookUpColumnInfo
+            lueSelectCross.Properties.Columns.Add(new DevExpress.XtraEditors.Controls.LookUpColumnInfo
             {
                 FieldName = "value",
 
@@ -232,6 +308,9 @@ namespace TestProj
             lueSelectCross.Properties.DataSource = enumList;
 
             lueSelectCross.EditValue = enumList[0].value;
+
+            lueSelectCross.Properties.ShowHeader = false;
+            lueSelectCross.Properties.ShowFooter = false;
 
             SelectCross = (SelectCross)enumList[0].value;
         }
@@ -265,6 +344,9 @@ namespace TestProj
 
             lueSelectMutate.EditValue = enumList[0].value;
 
+            lueSelectMutate.Properties.ShowHeader = false;
+            lueSelectMutate.Properties.ShowFooter = false;
+
             SelectMutate = (SelectMutate)enumList[0].value;
         }
 
@@ -294,28 +376,20 @@ namespace TestProj
 
             lueSelectSelection.EditValue = enumList[0].value;
 
+            lueSelectSelection.Properties.ShowHeader = false;
+            lueSelectSelection.Properties.ShowFooter = false;
+
             SelectSelection = (SelectSelection)enumList[0].value;
         }
-
 
         #endregion
 
         private void NativeGenAlgorithm()
         {
             Population = GenerateFirstPopulation();
-            DisplayPopulation(Population);
+            DisplayPopulation("Начальная популяция", Population);
         }
-        private void DisplayPopulation(List<Candidate> population)
-        {
-            foreach (var item in population)
-            {
-                meOutPut.Text += "Число" + item.DecValue;
-                meOutPut.Text += "\tДвоичный вид " + MathConvert.ConvertBinToString(item.Chromosome);
-                meOutPut.Text += "\tФункция приспособленности " + item.Fitness;
-                meOutPut.Text += Environment.NewLine;
-            }
-            meOutPut.Text += Environment.NewLine;
-        }
+
 
         /// <summary>
         /// Генерация первого поколения
@@ -347,7 +421,7 @@ namespace TestProj
                 population.Add(new Candidate
                 {
                     DecValue = list[index],
-                    Chromosome = new Chromosome(MathConvert.ConvertFromDecToBin(list[index])),
+                    Chromosome = new Chromosome(MathConvert.ConvertFromDecToBin(list[index], IsOnlyPositive)),
                     Fitness = CalcFunction(Convert.ToDouble(list[index]))
                 });
             }
@@ -480,39 +554,7 @@ namespace TestProj
             return count;
         }
 
-        private void TournamentSelection()
-        {
-            //Группа особей, участвующих в турнире
-            var tournamentGroup = new List<Candidate>();
-            //Список индексов выбранных особей
-            var indexList = new List<int>();
 
-            int counter = 0;
-
-            //Заполняем группу особей, которые участвуют в турнире
-            while (counter < TournamentSize)
-            {
-                var index = random.Next(0, Population.Count - 1);
-
-                if (indexList.Exists(g => g == index))
-                    continue;
-
-                indexList.Add(index);
-                tournamentGroup.Add(Population[index]);
-
-                counter++;
-            }
-
-            //var groupCount = Population.Count % TournamentSize == 0 ? Population.Count / TournamentSize : Population.Count / TournamentSize + 1;
-
-            //for (int group = 0; group < TournamentSize; group++)
-            //{
-
-            //}
-
-            //В зависимости от цели выбираем лучшую особь по функции принадлежности
-            var bestCandidate = SelectTarget == SelectTarget.Maxinum ? tournamentGroup.Max(g => g.Fitness) : tournamentGroup.Min(g => g.Fitness);
-        }
 
         #endregion
 
@@ -1015,6 +1057,9 @@ namespace TestProj
 
         #region Методы селекции
 
+        /// <summary>
+        /// В зависимости от выбранной конфигурации запускается определенный метод селекции
+        /// </summary>
         private void Selection()
         {
             switch (SelectSelection)
@@ -1025,8 +1070,17 @@ namespace TestProj
                 case SelectSelection.EliteSelection:
                     EliteSelection();
                     break;
-                case SelectSelection.ExclusionSelection:
-                    //Inversion(chromosome);
+                case SelectSelection.RouletteSelection:
+                    RouletteSelection();
+                    break;
+                case SelectSelection.EqualProbabilityTournament:
+                    EqualProbabilityTournament();
+                    break;
+                case SelectSelection.ClassicTournament:
+                    ClassicTournament();
+                    break;
+                case SelectSelection.RouletteTournament:
+                    RouletteTournament();
                     break;
                 case SelectSelection.BolzmanSelection:
                     BolzmanSelection();
@@ -1047,6 +1101,9 @@ namespace TestProj
             population.AddRange(Population);
             // Добавление популяции потомков к созданной популяции
             population.AddRange(IntermediatePopulation);
+
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
 
             // Сортировка популяции родителей и потомков по максимальному значению функции принадлежности
             population.Sort((a, b) => b.Fitness.CompareTo(a.Fitness));
@@ -1089,6 +1146,9 @@ namespace TestProj
             // Добавление популяции потомков к созданной популяции
             population.AddRange(IntermediatePopulation);
 
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
+
             // Сортировка популяции родителей и потомков по максимальному значению функции принадлежности
             population.Sort((a, b) => b.Fitness.CompareTo(a.Fitness));
 
@@ -1103,10 +1163,14 @@ namespace TestProj
 
             Population = totalPopulation;
         }
-        
-        //TODO
-        private void ExclusionSelection()
+
+        /// <summary>
+        /// Отбор методом колеса рулетки
+        /// </summary>
+        private void RouletteSelection()
         {
+            Random rnd = new Random();
+
             var population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -1114,7 +1178,543 @@ namespace TestProj
             // Добавление популяции потомков к созданной популяции
             population.AddRange(IntermediatePopulation);
 
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
 
+            // Итоговая популяция
+            List<Candidate> totalPopulation = IsDuplicate ? Roulette(PopulationSize, population) : RouletteWithoutDuplicate(PopulationSize, population);
+
+            Population = totalPopulation;
+        }
+
+        /*private void TournamentSelection()
+        {
+            Random rnd = new Random();
+
+            var population = new List<Candidate>();
+
+            // Добавление популяции родителей к созданной популяции
+            population.AddRange(Population);
+            // Добавление популяции потомков к созданной популяции
+            population.AddRange(IntermediatePopulation);
+
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
+
+            var groupCount = population.Count / GroupSize;
+
+            var modul = population.Count % GroupSize;
+
+            if (modul > 0)
+                groupCount++;
+
+            //Список доступных элементов
+            List<Candidate> availableList = new List<Candidate>();
+            availableList.AddRange(population);
+
+            //Популяция разбитая на группы
+            List<List<Candidate>> groupList = new List<List<Candidate>>();
+
+            // Разбиение особей на группы
+            for (int group = 0; group < groupCount; group++)
+            {
+                // Инициализация группы особей
+                List<Candidate> tempGroup = new List<Candidate>();
+
+                // Заполнение группы доступными особями
+                for (int item = 0; item < GroupSize; item++)
+                {
+                    // Выход из цикла, если не осталось доступных особей
+                    if (availableList.Count == 0)
+                        break;
+
+                    var tempCandidateId = rnd.Next(0, availableList.Count);
+                    var tempCandidate = availableList[tempCandidateId];
+
+                    // Добавление особи в группу
+                    tempGroup.Add(tempCandidate);
+
+                    // Удаление особи из списка доступных особей
+                    availableList.RemoveAt(tempCandidateId);
+                }
+
+                // Добавление группы особей к остальным группам
+                groupList.Add(tempGroup);
+
+
+            }
+
+            //  Количество особей во всех группах
+            var allCount = groupList.Sum(i => i.Count());
+
+            // Итоговая популяция
+            var totalList = new List<Candidate>();
+
+            if (allCount % PopulationSize == 0)
+            {
+                var passCandidateCount = GroupSize / 2;
+
+                foreach (var group in groupList)
+                {
+                    availableList = new List<Candidate>();
+                    availableList.AddRange(group);
+
+                    for (int item = 0; item < passCandidateCount; item++)
+                    {
+                        var tempCandidateId = rnd.Next(0, availableList.Count);
+                        var tempCandidate = availableList[tempCandidateId];
+
+                        // Добавление особи в группу
+                        totalList.Add(tempCandidate);
+
+                        // Удаление особи из списка доступных особей
+                        availableList.RemoveAt(tempCandidateId);
+                    }
+                }
+            }
+            else
+            {
+                for (int group = groupList.Count - 1; group > 0; group--)
+                {
+                    availableList = new List<Candidate>();
+                    availableList.AddRange(groupList[group]);
+                    var passCandidateCount = groupList[group].Count / 2;
+
+                    for (int item = 0; item < passCandidateCount; item++)
+                    {
+                        var tempCandidateId = rnd.Next(0, availableList.Count);
+                        var tempCandidate = availableList[tempCandidateId];
+
+                        // Добавление особи в группу
+                        totalList.Add(tempCandidate);
+
+                        // Удаление особи из списка доступных особей
+                        availableList.RemoveAt(tempCandidateId);
+                    }
+                }
+            }
+        }*/
+
+        /// <summary>
+        /// Равновероятностная турнирная селекция (без повторений)
+        /// </summary>
+        private void EqualProbabilityTournament()
+        {
+            Random rnd = new Random();
+
+            List<Candidate> population = new List<Candidate>();
+
+            // Добавление популяции родителей к созданной популяции
+            population.AddRange(Population);
+            // Добавление популяции потомков к созданной популяции
+            population.AddRange(IntermediatePopulation);
+
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
+
+            List<List<Candidate>> groupList = GenerateGroups(population);
+
+            List<int> passList = GetPassList(groupList);
+
+            List<Candidate> totalPopulation = GroupSelectionEqualProb(groupList, passList);
+
+            Population = totalPopulation;
+        }
+
+        /// <summary>
+        /// Класическая турнирная селекция
+        /// </summary>
+        private void ClassicTournament()
+        {
+            Random rnd = new Random();
+
+            List<Candidate> population = new List<Candidate>();
+
+            // Добавление популяции родителей к созданной популяции
+            population.AddRange(Population);
+            // Добавление популяции потомков к созданной популяции
+            population.AddRange(IntermediatePopulation);
+
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
+
+            List<List<Candidate>> groupList = GenerateGroups(population);
+
+            List<int> passList = GetPassList(groupList);
+
+            List<Candidate> totalPopulation = GroupSelectionClassic(groupList, passList);
+
+            Population = totalPopulation;
+        }
+
+        /// <summary>
+        /// Разновероятностная турнирная селекция
+        /// </summary>
+        private void RouletteTournament()
+        {
+            Random rnd = new Random();
+
+            List<Candidate> population = new List<Candidate>();
+
+            // Добавление популяции родителей к созданной популяции
+            population.AddRange(Population);
+            // Добавление популяции потомков к созданной популяции
+            population.AddRange(IntermediatePopulation);
+
+            // Удаляем из популяции особи, которые выходят за границы допустимого интервала
+            population.RemoveAll(a => a.DecValue < FunctionStartValue || a.DecValue > FunctionFinishValue);
+
+            // Разбиение популяции на группы
+            List<List<Candidate>> groupList = GenerateGroups(population);
+
+            //  Получение списка количества особей, которые будут выходить из каждой группы
+            List<int> passList = GetPassList(groupList);
+
+            // Получение итоговой популяции
+            List<Candidate> totalPopulation = GroupSelectionRoullete(groupList, passList);
+
+            Population = totalPopulation;
+        }
+
+        /// <summary>
+        /// Получение массива количества особей, которые выходят из группы
+        /// </summary>
+        /// <param name="_groupList">Список групп особей</param>
+        /// <returns>Список особей выходящих из групп</returns>
+        private List<int> GetPassList(List<List<Candidate>> _groupList)
+        {
+            // Среднее количество особей, которые должны выйти из группы
+            var avgPassItemCount = PopulationSize / _groupList.Count;
+
+            // Заполняем массив особей, которые выходят из группы средним пропускным количеством
+            var passList = new List<int>();
+            for (int i = 0; i < _groupList.Count; i++)
+            {
+                passList.Add(avgPassItemCount);
+            }
+
+            // Берем последнюю группу особей
+            var lastGroup = _groupList.LastOrDefault();
+
+            // Если ее размер меньше или равен 2, то из группы может выйти только 1 особь
+            if (lastGroup.Count <= 2)
+                passList[passList.Count - 1] = 1;
+
+            // Рассчитанное количество проходящих особей
+            var calcListSize = passList.Sum();
+
+            // Подравнять значения, если рассчитанное количество проходящих особей меньше размера популяции
+            if (calcListSize < PopulationSize)
+            {
+                // Разница
+                var differ = PopulationSize - calcListSize;
+
+                for (int counter = 0, index = 0; counter < differ;)
+                {
+                    // Если дошли до последнего элемента, обнунялем значение индекса и переходим на следующую итерацию
+                    if (index == _groupList.Count - 1)
+                    {
+                        index = 0;
+                        continue;
+                    }
+
+                    // Увеличиваем для группы количество проходящих особей
+                    passList[index] += 1;
+
+                    // Увеличиваем значения счетчика и индекса
+                    index++;
+                    counter++;
+                }
+
+                calcListSize += differ;
+            }
+
+            if (IsDisplay)
+            {
+                DisplayText($"Среднее количество особей выходящих из группы: {avgPassItemCount}");
+                DisplayList(passList, "Список особей выходящих из группы");
+                DisplayText($"Рассчитанное количество особей, которые будут в новой популяции: {calcListSize}");
+                AddNewLine();
+            }
+
+            return passList;
+        }
+
+        /// <summary>
+        ///  Генерация групп (Разбиение популяции на группы)
+        /// </summary>
+        /// <param name="_candidateList">Популяция (список особей)</param>
+        /// <returns>Список групп особей</returns>
+        private List<List<Candidate>> GenerateGroups(List<Candidate> _candidateList)
+        {
+            Random rnd = new Random();
+
+            var groupCount = _candidateList.Count / GroupSize;
+            var modul = _candidateList.Count % GroupSize;
+
+            if (modul > 0)
+                groupCount++;
+
+            if (IsDisplay)
+            {
+                DisplayText($"Размер популяции: {_candidateList.Count}");
+                DisplayText($"Размер группы: {GroupSize}");
+                DisplayText($"Количество групп: {groupCount} ");
+                DisplayText($"Остаток: {modul}");
+                DisplayText($"Расчитанное количество групп: {groupCount}");
+            }
+
+            //Список доступных элементов
+            List<Candidate> availableList = new List<Candidate>();
+            availableList.AddRange(_candidateList);
+
+            //Популяция разбитая на группы
+            List<List<Candidate>> groupList = new List<List<Candidate>>();
+
+            for (int group = 0; group < groupCount; group++)
+            {
+                // Группа
+                List<Candidate> tempGroup = new List<Candidate>();
+
+                for (int item = 0; item < GroupSize; item++)
+                {
+                    if (availableList.Count == 0)
+                        break;
+
+                    var tempCandidateId = rnd.Next(0, availableList.Count);
+                    var tempCandidate = availableList[tempCandidateId];
+
+                    // Добавляем особь в популяцию
+                    tempGroup.Add(tempCandidate);
+
+                    // Удаляем значение из списка доступных особей
+                    availableList.RemoveAt(tempCandidateId);
+                }
+
+                if (IsDisplay)
+                    DisplayList(tempGroup, $"Группа №{group}");
+
+                groupList.Add(tempGroup);
+            }
+
+            if (IsDisplay)
+            {
+                DisplayText($"Количество групп: {groupList.Count}");
+                AddNewLine();
+            }
+
+            return groupList;
+        }
+
+        /// <summary>
+        /// Равновероятностный турнир
+        /// </summary>
+        /// <param name="_groupList">Список групп особей</param>
+        /// <param name="_passList">Список выходящих из группы особей</param>
+        /// <returns>Список отобранных особей</returns>
+        private List<Candidate> GroupSelectionEqualProb(List<List<Candidate>> _groupList, List<int> _passList)
+        {
+            var newPopulation = new List<Candidate>();
+
+            Random rnd = new Random();
+
+            for (int i = 0; i < _groupList.Count; i++)
+            {
+                var availableList = new List<Candidate>();
+                availableList.AddRange(_groupList[i]);
+
+                // Группа
+                List<Candidate> tempGroup = new List<Candidate>();
+
+                for (int item = 0; item < _passList[i]; item++)
+                {
+                    if (availableList.Count == 0)
+                        break;
+
+                    var tempCandidateId = rnd.Next(0, availableList.Count);
+                    var tempCandidate = availableList[tempCandidateId];
+
+                    // Добавляем особь в популяцию
+                    tempGroup.Add(tempCandidate);
+
+                    // Удаляем значение из списка доступных особей
+                    availableList.RemoveAt(tempCandidateId);
+                }
+
+                newPopulation.AddRange(tempGroup);
+            }
+
+            if (IsDisplay)
+            {
+                DisplayList(newPopulation, "Новая популяция");
+                AddNewLine();
+            }
+
+            return newPopulation;
+        }
+
+        /// <summary>
+        /// Классический турнир
+        /// </summary>
+        /// <param name="_groupList">Список групп особей</param>
+        /// <param name="_passList">Список выходящих из группы особей</param>
+        /// <returns>Список отобранных особей</returns>
+        private List<Candidate> GroupSelectionClassic(List<List<Candidate>> _groupList, List<int> _passList)
+        {
+            var newPopulation = new List<Candidate>();
+
+            Random rnd = new Random();
+
+            for (int i = 0; i < _groupList.Count; i++)
+            {
+                var tempList = new List<Candidate>();
+                tempList.AddRange(_groupList[i]);
+
+                tempList.Sort((a, b) => b.Fitness.CompareTo(a.Fitness));
+
+                if (SelectTarget == SelectTarget.Minimum)
+                {
+                    tempList.Reverse();
+                }
+
+                var totalTempList = tempList.Take(2).ToList();
+
+                newPopulation.AddRange(totalTempList);
+            }
+
+            if (IsDisplay)
+            {
+                DisplayList(newPopulation, "Новая популяция");
+                AddNewLine();
+            }
+
+            return newPopulation;
+        }
+
+        /// <summary>
+        /// Разновероятностный турнир
+        /// </summary>
+        /// <param name="_groupList">Список групп особей</param>
+        /// <param name="_passList">Список выходящих из группы особей</param>
+        /// <returns>Список отобранных особей</returns>
+        private List<Candidate> GroupSelectionRoullete(List<List<Candidate>> _groupList, List<int> _passList)
+        {
+            var newPopulation = new List<Candidate>();
+
+            for (int i = 0; i < _groupList.Count; i++)
+            {
+                var tempList = new List<Candidate>();
+
+                tempList = IsDuplicate ? Roulette(_passList[i], _groupList[i]) : RouletteWithoutDuplicate(_passList[i], _groupList[i]);
+
+                newPopulation.AddRange(tempList);
+            }
+
+            if (IsDisplay)
+            {
+                DisplayList(newPopulation, "Новая популяция");
+                AddNewLine();
+            }
+
+            return newPopulation;
+        }
+
+        /// <summary>
+        /// Отбор наилучших особей методом рулетки
+        /// </summary>
+        /// <param name="_passItemCount"></param>
+        /// <param name="_candidateList"></param>
+        /// <returns></returns>
+        private List<Candidate> Roulette(int _passItemCount, List<Candidate> _candidateList)
+        {
+            Random rnd = new Random();
+
+            var probabilityList = CalcProbability(_candidateList);
+
+            //Общее значение функции приспособленности
+            var allFitness = _candidateList.Sum(g => g.Fitness);
+
+            // Итоговая популяция
+            List<Candidate> totalPopulation = new List<Candidate>();
+
+            while (totalPopulation.Count < _passItemCount)
+            {
+                var probability = rnd.NextDouble();
+
+                var index = probabilityList.FindIndex(g => probability < g);
+
+                totalPopulation.Add(_candidateList[index]);
+            }
+
+            return totalPopulation;
+        }
+
+        /// <summary>
+        ///  Выбор наилучших особей методом рулетки (без дубликатов)
+        /// </summary>
+        /// <param name="_passItemCount">Количество проходящих особей</param>
+        /// <param name="_candidateList">Популяция</param>
+        /// <returns>Отообранная популяция</returns>
+        private List<Candidate> RouletteWithoutDuplicate(int _passItemCount, List<Candidate> _candidateList)
+        {
+            Random rnd = new Random();
+
+            var population = new List<Candidate>();
+
+            population.AddRange(_candidateList);
+
+            // Итоговая популяция
+            List<Candidate> totalPopulation = new List<Candidate>();
+
+            var availableList = new List<Candidate>();
+            availableList.AddRange(population);
+
+            if (availableList.Count == _passItemCount)
+            {
+                totalPopulation.AddRange(availableList);
+            }
+            else
+            {
+                while (totalPopulation.Count < _passItemCount)
+                {
+                    var probabilityList = CalcProbability(availableList);
+
+                    var probability = rnd.NextDouble();
+                    var index = probabilityList.FindIndex(g => probability < g);
+
+                    totalPopulation.Add(availableList[index]);
+
+                    availableList.RemoveAt(index);
+                }
+            }
+
+            return totalPopulation;
+        }
+
+        /// <summary>
+        /// Расчет вероятности
+        /// </summary>
+        /// <param name="list">Список</param>
+        /// <returns>Список вероятности</returns>
+        static List<double> CalcProbability(List<Candidate> _candidateList)
+        {
+            var probabilityList = new List<double>();
+
+            //Общее значение функции приспособленности
+            var allFitness = _candidateList.Sum(g => g.Fitness);
+
+            for (int i = 0; i < _candidateList.Count; i++)
+            {
+                // Функция приспособленности особи относительно общему значению функции приспособленности
+                var probability = _candidateList[i].Fitness / allFitness;
+
+                if (probabilityList.Count == 0)
+                    probabilityList.Add(probability);
+                else
+                    probabilityList.Add(probabilityList[i - 1] + probability);
+            }
+
+            return probabilityList;
         }
 
         /// <summary>
@@ -1127,14 +1727,36 @@ namespace TestProj
         /// </summary>
         private void BolzmanSelection()
         {
+            Random rnd = new Random();
+
             var population = new List<Candidate>();
+            var totalPopulation = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
             population.AddRange(Population);
             // Добавление популяции потомков к созданной популяции
             population.AddRange(IntermediatePopulation);
 
+            for (int i = 0; i < PopulationSize; i++)
+            {
+                int firstCandidate = rnd.Next(0, population.Count);
+                int secondCandidate = 0;
 
+                do
+                {
+                    secondCandidate = rnd.Next(0, population.Count);
+                }
+                while (secondCandidate == firstCandidate);
+
+                double probability = 1 / (1 + Math.Exp((population[firstCandidate].Fitness - population[secondCandidate].Fitness) / Temperature));
+
+                double randomValue = rnd.NextDouble();
+
+                if (probability > randomValue)
+                    totalPopulation.Add(population[firstCandidate]);
+                else
+                    totalPopulation.Add(population[secondCandidate]);
+            }
         }
 
         /// <summary>
@@ -1166,9 +1788,6 @@ namespace TestProj
 
         #endregion
 
-
-
-
         /// <summary>
         /// Валидация
         /// </summary>
@@ -1180,116 +1799,177 @@ namespace TestProj
             return leftLessRightValue;
         }
 
+        private void DisplayText(string text, bool isNewLine = true)
+        {
+            meOutPut.Text += text;
+
+            if (isNewLine)
+                AddNewLine();
+        }
+
+        private void DisplayPopulation(string text, List<Candidate> population)
+        {
+            DisplayText(text);
+
+            foreach (var item in population)
+            {
+                DisplayText($"Число {item.DecValue}\t", false);
+                DisplayText($"Двоичный вид {MathConvert.ConvertBinToString(item.Chromosome)}\t", false);
+                DisplayText($"Функция приспособленности {item.Fitness}", false);
+                AddNewLine();
+            }
+
+            AddNewLine();
+        }
+
+        /// <summary>
+        /// Отображение элементов списка
+        /// </summary>
+        /// <param name="list">Список</param>
+        /// <param name="text">Название (опционально)</param>
+        private void DisplayList(List<int> list, string text = null)
+        {
+            if (text != null)
+                DisplayText($"{text}: ", false);
+
+            foreach (var item in list)
+            {
+                DisplayText($"{item} ", false);
+            }
+
+            AddNewLine();
+        }
+
+        private void DisplayList(List<Candidate> list, string text = null)
+        {
+            if (text != null)
+                DisplayText($"{text}: ", false);
+
+            foreach (var item in list)
+            {
+                DisplayText($"{item} ", false);
+            }
+
+            AddNewLine();
+        }
+
+        private void AddNewLine()
+        {
+            meOutPut.Text += Environment.NewLine;
+        }
+        private void AddSpaces(int count)
+        {
+            for (int i = 1; i <= count; i++)
+            {
+                meOutPut.Text += " ";
+            }
+        }
+        private void SeparateText()
+        {
+            meOutPut.Text += "___________________________";
+            meOutPut.Text += Environment.NewLine;
+        }
+
         private void sbStart_Click(object sender, EventArgs e)
         {
             try
             {
-                meOutPut.Lines = null;
+                DateTime startAlgorithm = DateTime.Now;
 
+                meOutPut.Lines = null;
                 Population = GenerateFirstPopulation();
-                DisplayPopulation(Population);
+                DisplayPopulation("Начальная популяция", Population);
 
                 for (int generation = 1; generation <= GenerationSize; generation++)
                 {
-                    meOutPut.Text += $"Поколение №{generation}";
-                    meOutPut.Text += Environment.NewLine;
+                    DateTime startGeneration = DateTime.Now;
+
+                    DisplayText($"Поколение №{generation}");
 
                     IntermediatePopulation = new List<Candidate>();
 
-                    //Скрещивание и мутация
-
+                    // Скрещивание и мутация
                     for (int parent1_ID = 0; parent1_ID < PopulationSize; parent1_ID++)
                     {
-                        meOutPut.Text += $"Скрещивание {MathConvert.ConvertBinToString(Population[parent1_ID].Chromosome)}";
-                        meOutPut.Text += Environment.NewLine;
+                        DisplayText($"Скрещивание {MathConvert.ConvertBinToString(Population[parent1_ID].Chromosome)}");
 
+                        // Выбираем 2 Родителя
                         int parent2_ID = SelectParents(parent1_ID);
 
                         if (parent2_ID < 0)
                         {
-                            meOutPut.Text += $"НЕ УДАЛОСЬ!" + Environment.NewLine;
+                            DisplayText($"СКРЕЩИВАНИЕ НЕ УДАЛОСЬ!");
                             continue;
                         }
 
-                        //int parent2_ID = random.Next(0, population.Count - 1);
-
-                        //if (parent2_ID == parent1_ID)
-                        //{
-                        //    meOutPut.Text += $"НЕ УДАЛОСЬ!" + Environment.NewLine;
-                        //    continue;
-                        //}
-
-                        //Выбираем 1 Родителя
                         Chromosome parent1 = Population[parent1_ID].Chromosome;
                         Chromosome parent2 = Population[parent2_ID].Chromosome;
 
                         Candidate childCandidate = new Candidate();
                         Chromosome child = Crossover(parent1, parent2);
 
-                        meOutPut.Text += $"Родитель №1: {MathConvert.ConvertBinToString(parent1)}" + Environment.NewLine;
-                        meOutPut.Text += $"Родитель №2: {MathConvert.ConvertBinToString(parent2)}" + Environment.NewLine;
-                        meOutPut.Text += $"Потомок: {MathConvert.ConvertBinToString(child)}" + Environment.NewLine;
+                        DisplayText($"Родитель №1: {MathConvert.ConvertBinToString(parent1)}");
+                        DisplayText($"Родитель №2: {MathConvert.ConvertBinToString(parent2)}");
+                        DisplayText($"Потомок: {MathConvert.ConvertBinToString(child)}");
 
                         var mutationProbability = random.NextDouble();
+                        AddNewLine();
 
-                        meOutPut.Text += $"Вероятность мутации у потомка: {mutationProbability};     ";
+                        DisplayText($"Вероятность мутации у потомка: {mutationProbability}");
 
                         if (mutationProbability <= MutationProbability)
                         {
                             Mutate(child);
-                            meOutPut.Text += $"Мутировавший потомок: {MathConvert.ConvertBinToString(child)}";
+                            DisplayText($"Мутировавший потомок: {MathConvert.ConvertBinToString(child)}");
                         }
                         else
                         {
-                            meOutPut.Text += "Мутация не удалась";
+                            DisplayText($"МУТАЦИЯ НЕ УДАЛАСЬ!");
                         }
 
-                        meOutPut.Text += Environment.NewLine;
-
-                        ////С указанной вероятностью происходит мутация потомка
-                        //if (random.NextDouble() <= MutationProbability)
-                        //    Mutate(child);
+                        AddNewLine();
 
                         childCandidate.Chromosome = child;
-                        childCandidate.DecValue = MathConvert.ConvertFromBinToDec(child);
-                        childCandidate.Fitness = CalcFunction(Convert.ToDouble(MathConvert.ConvertFromBinToDec(child)));
+                        childCandidate.DecValue = MathConvert.ConvertFromBinToDec(child, IsOnlyPositive);
+                        childCandidate.Fitness = CalcFunction(Convert.ToDouble(MathConvert.ConvertFromBinToDec(child, IsOnlyPositive)));
 
                         IntermediatePopulation.Add(childCandidate);
                     }
 
-                    //Population.AddRange(IntermediatePopulation);
-
-                    //meOutPut.Text += $"Промежуточная популяция {generation} поколения " + Environment.NewLine;
-                    //foreach (var item in Population)
-                    //{
-                    //    meOutPut.Text += $"Число{item.DecValue}          ";
-                    //    meOutPut.Text += $"Двоичный вид {MathConvert.ConvertBinToString(item.Chromosome)}        ";
-                    //    meOutPut.Text += $"Функция приспособленности {item.Fitness}";
-                    //    meOutPut.Text += Environment.NewLine;
-                    //}
-                    //meOutPut.Text += Environment.NewLine;
-
                     //Селекция
                     Selection();
 
-                    meOutPut.Text += $"Итоговая популяция {generation} поколения " + Environment.NewLine;
-                    foreach (var item in Population)
-                    {
-                        meOutPut.Text += $"Число{item.DecValue}          ";
-                        meOutPut.Text += $"Двоичный вид {MathConvert.ConvertBinToString(item.Chromosome)}        ";
-                        meOutPut.Text += $"Функция приспособленности {item.Fitness}";
-                        meOutPut.Text += Environment.NewLine;
-                    }
+                    DisplayPopulation($"Итоговая популяция {generation} поколения", Population);
 
-                    meOutPut.Text += Environment.NewLine;
-                    meOutPut.Text += "___________________________";
-                    meOutPut.Text += Environment.NewLine;
+
+                    var finishGeneration = StopTimer(startGeneration);
+
+                    DisplayText($"Время расчета {generation} поколения = {finishGeneration}");
+                    SeparateText();
+
                 }
+
+                var finishAlgorithm = StopTimer(startAlgorithm);
+                lcCalcTimer.Text = $"Время расчета {finishAlgorithm}";
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+
+        private string StopTimer(DateTime startTime)
+        {
+            DateTime finishTime = DateTime.Now;
+
+            var spendTime = finishTime - startTime;
+
+            string spendTimeStr = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                    spendTime.Hours, spendTime.Minutes, spendTime.Seconds,
+                    spendTime.Milliseconds / 10);
+
+            return spendTimeStr;
         }
 
         private void sbFunctionEnter_Click(object sender, EventArgs e)
@@ -1310,13 +1990,142 @@ namespace TestProj
 
                 for (double i = FunctionStartValue; i <= FunctionFinishValue; i += FunctionStep)
                 {
-                    chFunction.Series[0].Points.Add(new DevExpress.XtraCharts.SeriesPoint(i, CalcFunction(i)));
+                    chFunction.Series[0].Points.Add(new SeriesPoint(i, CalcFunction(i)));
                 }
+
+                GetGlobalExtremumPoint();
+
+                 var t = 0;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }
+        private void GetGlobalExtremumPoint()
+        {
+            var pointList = chFunction.Series[0].Points.ToList();
+
+            var extremumGlobalPoint = SelectTarget == SelectTarget.Maxinum ? GetMaxPoint(pointList) : GetMinPoint(pointList);
+
+            DisplayExtremumPoint(extremumGlobalPoint);
+        }
+
+        /// <summary>
+        /// Изменение количества делений для trackBar'а
+        /// </summary>
+        private void ChangeRangeTrack()
+        {
+            var oldMaxValue = rngPopulationTrack.Properties.Maximum;
+
+            rngPopulationTrack.Properties.Maximum = GenerationSize;
+
+            if (oldMaxValue == GenerationSize)
+                return;
+
+            if (oldMaxValue < GenerationSize)
+                AddRangeLabel();
+            else
+                RemoveRangeLabel();
+        }
+
+        /// <summary>
+        /// Добавление подписи для trackBar'а
+        /// </summary>
+        private void AddRangeLabel()
+        {
+            var maxValue = rngPopulationTrack.Properties.Maximum;
+
+            var index = rngPopulationTrack.Properties.Labels.Count;
+
+            for (; index <= maxValue; index++)
+            {
+                TrackBarLabel trackBarLabel = new TrackBarLabel(index.ToString(), index, true);
+                rngPopulationTrack.Properties.Labels.Add(trackBarLabel);
+            }
+        }
+        /// <summary>
+        /// Удаление подписи для trackBar'а
+        /// </summary>
+        private void RemoveRangeLabel()
+        {
+            var maxValue = rngPopulationTrack.Properties.Maximum;
+
+            var index = rngPopulationTrack.Properties.Labels.Count - 1;
+
+            for (; index > maxValue; index--)
+            {
+                rngPopulationTrack.Properties.Labels.RemoveAt(index);
+            }
+        }
+
+
+
+        /// <summary>
+        /// Получение максимальной точки на графике
+        /// </summary>
+        /// <param name="_pointList">Список точек</param>
+        /// <returns>Максимальная точка</returns>
+        private SeriesPoint GetMaxPoint(List<ISeriesPoint> _pointList)
+        {
+            SeriesPoint maxPoint = new SeriesPoint();
+            double maxValue = -100000000000.00;
+
+            foreach (var point in _pointList)
+            {
+                var pointValue = point.UserValues.FirstOrDefault();
+
+                if (maxValue <= pointValue)
+                {
+                    maxValue = pointValue;
+                    maxPoint = (SeriesPoint)point;
+                }
+            }
+
+            return maxPoint;
+        }
+
+        /// <summary>
+        /// Получение минимальной точки на графике
+        /// </summary>
+        /// <param name="_pointList">Список точек</param>
+        /// <returns>Минимальная точка</returns>
+        private SeriesPoint GetMinPoint(List<ISeriesPoint> _pointList)
+        {
+            SeriesPoint minPoint = new SeriesPoint();
+            double minValue = 100000000000.00;
+
+            foreach (var point in _pointList)
+            {
+                var pointValue = point.UserValues.FirstOrDefault();
+
+                if (minValue <= pointValue)
+                {
+                    minValue = pointValue;
+                    minPoint = (SeriesPoint)point;
+                }
+            }
+
+            return minPoint;
+        }
+
+        /// <summary>
+        /// Отобразить точку глобального экстремума на графике
+        /// </summary>
+        /// <param name="_extremumGlobalPoint">Точкаглобального экстремума</param>
+        private void DisplayExtremumPoint(SeriesPoint _extremumGlobalPoint)
+        {
+            if (chFunction.Series.Count > 1)
+                chFunction.Series[1].Points.Clear();
+
+            Series series1 = chFunction.Series[1];
+
+            ((LineSeriesView)series1.View).MarkerVisibility = DefaultBoolean.True;
+            ((LineSeriesView)series1.View).LineMarkerOptions.Kind = MarkerKind.Circle;
+            ((LineSeriesView)series1.View).LineMarkerOptions.Size = 10;
+            ((LineSeriesView)series1.View).LineStyle.DashStyle = DashStyle.Dash;
+
+            chFunction.Series[1].Points.Add(_extremumGlobalPoint);
         }
 
         private void seFunctionStep_Spin(object sender, DevExpress.XtraEditors.Controls.SpinEventArgs e)
@@ -1354,7 +2163,7 @@ namespace TestProj
             return increment;
         }
 
-        #region Событие изменения значений у выпадащих списков
+        #region События изменения значений у контролов
 
         private void seFunctionStep_EditValueChanged(object sender, EventArgs e)
         {
@@ -1423,6 +2232,15 @@ namespace TestProj
                 var lookUpEdit = sender as LookUpEdit;
 
                 SelectTarget = (SelectTarget)lookUpEdit.EditValue;
+
+                if (SelectTarget == SelectTarget.Minimum && 
+                   (SelectSelection == SelectSelection.RouletteSelection || SelectSelection == SelectSelection.RouletteTournament))
+                {
+                    MessageBox.Show("Метод селекции: Колесо рулетки не может использоваться" +
+                                    " для решения задачи нахождения глобального минимума");
+
+                    lueSelectSelection.EditValue = SelectSelection.TruncationSelection;
+                }
             }
             catch (Exception ex)
             {
@@ -1469,6 +2287,7 @@ namespace TestProj
                 SelectMutate = (SelectMutate)lookUpEdit.EditValue;
 
                 seMutateGeneCount.Enabled = SelectMutate == SelectMutate.MutateNPoint ? true : false;
+                seMutationGeneProbability.Enabled = SelectMutate == SelectMutate.DensityMutate ? true : false;
             }
             catch (Exception ex)
             {
@@ -1483,6 +2302,30 @@ namespace TestProj
                 var lookUpEdit = sender as LookUpEdit;
 
                 SelectSelection = (SelectSelection)lookUpEdit.EditValue;
+
+                seSelectionTreshold.Enabled = SelectSelection == SelectSelection.TruncationSelection ? true : false;
+
+                seGroupSize.Enabled = SelectSelection == SelectSelection.RouletteTournament ||
+                                      SelectSelection == SelectSelection.ClassicTournament ||
+                                      SelectSelection == SelectSelection.EqualProbabilityTournament ? true : false;
+
+
+                if (SelectTarget == SelectTarget.Minimum && 
+                   (SelectSelection == SelectSelection.RouletteSelection || SelectSelection == SelectSelection.RouletteTournament))
+                {
+                    MessageBox.Show("Метод селекции: Колесо рулетки не может использоваться" +
+                                    " для решения задачи нахождения глобального минимума");
+
+                    lueSelectTarget.EditValue = SelectTarget.Maxinum;
+                }
+
+                ceIsDisplay.Enabled = SelectSelection == SelectSelection.RouletteSelection ||
+                                      SelectSelection == SelectSelection.RouletteTournament ||
+                                      SelectSelection == SelectSelection.ClassicTournament ||
+                                      SelectSelection == SelectSelection.EqualProbabilityTournament ? true : false;
+
+                ceIsDuplicate.Enabled = SelectSelection == SelectSelection.RouletteTournament ||
+                                        SelectSelection == SelectSelection.RouletteSelection ? true : false;
             }
             catch (Exception ex)
             {
@@ -1506,7 +2349,105 @@ namespace TestProj
         {
             try
             {
-                SelectionTreshold = Convert.ToInt32(seSelectionTreshold.EditValue);
+                SelectionTreshold = Convert.ToDouble(seSelectionTreshold.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void seGenerationSize_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                GenerationSize = Convert.ToInt32(seGenerationSize.EditValue);
+
+                ChangeRangeTrack();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void sePopulationSize_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                PopulationSize = Convert.ToInt32(sePopulationSize.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void seMutationProbability_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                MutationProbability = Convert.ToDouble(seMutationProbability.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void seMutationGeneProbability_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                MutationGeneProbability = Convert.ToDouble(seMutationGeneProbability.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void seGroupSize_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                GroupSize = Convert.ToInt32(seGroupSize.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void ceIsDisplay_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                IsDisplay = Convert.ToBoolean(ceIsDisplay.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void ceIsDuplicate_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                IsDuplicate = Convert.ToBoolean(ceIsDuplicate.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void rngPopulationTrack_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+
             }
             catch (Exception ex)
             {
@@ -1517,6 +2458,8 @@ namespace TestProj
         #endregion
 
     }
+
+    
 
     #region Function
 
@@ -1535,16 +2478,21 @@ namespace TestProj
 
             switch (++num)
             {
+
+
                 case 1:
-                    calcFunction = Func1;
+                    calcFunction = Func0;
                     break;
                 case 2:
-                    calcFunction = Func2;
+                    calcFunction = Func1;
                     break;
                 case 3:
-                    calcFunction = Func3;
+                    calcFunction = Func2;
                     break;
                 case 4:
+                    calcFunction = Func3;
+                    break;
+                case 5:
                     calcFunction = Func4;
                     break;
                 default:
@@ -1554,6 +2502,10 @@ namespace TestProj
             return calcFunction;
         }
 
+        static double Func0(double x)
+        {
+            return x;
+        }
         static double Func1(double x)
         {
             return x * x;
@@ -1654,8 +2606,17 @@ namespace TestProj
         [Description("Элитарный отбор")]
         EliteSelection,
 
-        [Description("Отбор вытеснением")]
-        ExclusionSelection,
+        [Description("Колесо рулетки")]
+        RouletteSelection,
+
+        [Description("Равновероятностная турнирная селекция")]
+        EqualProbabilityTournament,
+
+        [Description("Классическая турнирная селекция")]
+        ClassicTournament,
+
+        [Description("Турнирная селекция с использованием колеса рулетки")]
+        RouletteTournament,
 
         [Description("Метод Больцмана (метод отжига)")]
         BolzmanSelection

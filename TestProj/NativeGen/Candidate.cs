@@ -21,6 +21,8 @@ namespace TestProj.NativeGen
         /// </summary>
         public int DecValue { get; set; }
 
+        public double DoubleValue { get { return Convert.ToDouble(DecValue); } }
+        
         /// <summary>
         /// Положительное число
         /// </summary>

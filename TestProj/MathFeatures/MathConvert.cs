@@ -16,10 +16,24 @@ namespace TestProj.MathFeatures
         /// </summary>
         /// <param name="decNumber">Десятичное число</param>
         /// <returns>Двоичное число</returns>
-        public static List<int> ConvertFromDecToBin(int decNumber)
+        //public static List<int> ConvertFromDecToBin(int decNumber)
+        //{
+        //    if (decNumber >= 0)
+        //        return GetPositiveBin(decNumber);
+        //    else
+        //        return GetNegativeBin(decNumber);
+        //}
+
+        /// <summary>
+        /// Перевод из Десятичной системы в Двоичную (без использования кодирования отрицательных чисел)
+        /// </summary>
+        /// <param name="decNumber">Десятичное число</param>
+        /// <param name="isPosite">Если диапазон положительных чисел</param>
+        /// <returns>Двоичное число</returns>
+        public static List<int> ConvertFromDecToBin(int decNumber, bool onlyPositive)
         {
             if (decNumber >= 0)
-                return GetPositiveBin(decNumber);
+                return GetPositiveBin(decNumber, onlyPositive);
             else
                 return GetNegativeBin(decNumber);
         }
@@ -29,7 +43,7 @@ namespace TestProj.MathFeatures
         /// </summary>
         /// <param name="decNumber">Положительное число</param>
         /// <returns>Двоичное представление</returns>
-        private static List<int> GetPositiveBin(int decNumber)
+        private static List<int> GetPositiveBin(int decNumber, bool onlyPositive)
         {
             List<int> binNumber = new List<int>();
 
@@ -42,7 +56,10 @@ namespace TestProj.MathFeatures
 
             //Добавление в начало 0, так как число положительное   
             binNumber.Add(decNumber);
-            binNumber.Add(0);
+
+            if (!onlyPositive)
+                binNumber.Add(0);
+
             binNumber.Reverse();
 
             return binNumber;
@@ -61,7 +78,7 @@ namespace TestProj.MathFeatures
             var positiveDev = Math.Abs(decNumber);
 
             //Получаем прямой код
-            var frontCode = GetPositiveBin(positiveDev);
+            var frontCode = GetPositiveBin(positiveDev, false);
 
             var reverseCode = new List<int>();
 
@@ -135,8 +152,11 @@ namespace TestProj.MathFeatures
         /// </summary>
         /// <param name="binNumber"></param>
         /// <returns></returns>
-        public static int ConvertFromBinToDec(List<int> binNumber)
+        public static int ConvertFromBinToDec(List<int> binNumber, bool onlyPositive)
         {
+            if (onlyPositive)
+                return GetPosiveDec(binNumber);
+
             //Если в начале стоит 0, то это заведомо положительное число
             if (binNumber[0] == 0)
                 return GetPosiveDec(binNumber);
@@ -162,6 +182,8 @@ namespace TestProj.MathFeatures
 
                 decNumber += Convert.ToInt32(Math.Pow(2, i));
             }
+
+            binNumber.Reverse();
 
             return decNumber;
         }
@@ -235,7 +257,7 @@ namespace TestProj.MathFeatures
 
             frontCode.RemoveAt(0);
 
-            int decNumber = - GetPosiveDec(frontCode);
+            int decNumber = -GetPosiveDec(frontCode);
 
             return decNumber;
         }
