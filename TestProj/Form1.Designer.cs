@@ -29,14 +29,16 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            DevExpress.XtraCharts.XYDiagram xyDiagram2 = new DevExpress.XtraCharts.XYDiagram();
+            DevExpress.XtraCharts.XYDiagram xyDiagram1 = new DevExpress.XtraCharts.XYDiagram();
+            DevExpress.XtraCharts.Series series1 = new DevExpress.XtraCharts.Series();
+            DevExpress.XtraCharts.LineSeriesView lineSeriesView1 = new DevExpress.XtraCharts.LineSeriesView();
+            DevExpress.XtraCharts.Series series2 = new DevExpress.XtraCharts.Series();
+            DevExpress.XtraCharts.LineSeriesView lineSeriesView2 = new DevExpress.XtraCharts.LineSeriesView();
             DevExpress.XtraCharts.Series series3 = new DevExpress.XtraCharts.Series();
             DevExpress.XtraCharts.LineSeriesView lineSeriesView3 = new DevExpress.XtraCharts.LineSeriesView();
-            DevExpress.XtraCharts.Series series4 = new DevExpress.XtraCharts.Series();
-            DevExpress.XtraCharts.LineSeriesView lineSeriesView4 = new DevExpress.XtraCharts.LineSeriesView();
-            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel4 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
-            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel5 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
-            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel6 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
+            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel1 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
+            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel2 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
+            DevExpress.XtraEditors.Repository.TrackBarLabel trackBarLabel3 = new DevExpress.XtraEditors.Repository.TrackBarLabel();
             this.lcMain = new DevExpress.XtraLayout.LayoutControl();
             this.ceIsDuplicate = new DevExpress.XtraEditors.CheckEdit();
             this.ceIsDisplay = new DevExpress.XtraEditors.CheckEdit();
@@ -122,11 +124,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.seFunctionStep.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.teFuncionInput.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.chFunction)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(xyDiagram2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(xyDiagram1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(series1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(lineSeriesView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(series2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(lineSeriesView2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(series3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(lineSeriesView3)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(series4)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(lineSeriesView4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.meOutPut.Properties)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lciStart_btn)).BeginInit();
@@ -590,35 +594,38 @@
             // chFunction
             // 
             this.chFunction.BorderOptions.Color = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            xyDiagram2.AxisX.DateTimeScaleOptions.ScaleMode = DevExpress.XtraCharts.ScaleMode.Continuous;
-            xyDiagram2.AxisX.Title.Text = "X";
-            xyDiagram2.AxisX.Title.Visibility = DevExpress.Utils.DefaultBoolean.True;
-            xyDiagram2.AxisX.VisibleInPanesSerializable = "-1";
-            xyDiagram2.AxisY.Title.EnableAntialiasing = DevExpress.Utils.DefaultBoolean.True;
-            xyDiagram2.AxisY.Title.Text = "Y";
-            xyDiagram2.AxisY.Title.Visibility = DevExpress.Utils.DefaultBoolean.True;
-            xyDiagram2.AxisY.VisibleInPanesSerializable = "-1";
-            xyDiagram2.EnableAxisXScrolling = true;
-            xyDiagram2.EnableAxisXZooming = true;
-            xyDiagram2.EnableAxisYScrolling = true;
-            xyDiagram2.EnableAxisYZooming = true;
-            this.chFunction.Diagram = xyDiagram2;
+            xyDiagram1.AxisX.DateTimeScaleOptions.ScaleMode = DevExpress.XtraCharts.ScaleMode.Continuous;
+            xyDiagram1.AxisX.Title.Text = "X";
+            xyDiagram1.AxisX.Title.Visibility = DevExpress.Utils.DefaultBoolean.True;
+            xyDiagram1.AxisX.VisibleInPanesSerializable = "-1";
+            xyDiagram1.AxisY.Title.EnableAntialiasing = DevExpress.Utils.DefaultBoolean.True;
+            xyDiagram1.AxisY.Title.Text = "Y";
+            xyDiagram1.AxisY.Title.Visibility = DevExpress.Utils.DefaultBoolean.True;
+            xyDiagram1.AxisY.VisibleInPanesSerializable = "-1";
+            xyDiagram1.EnableAxisXScrolling = true;
+            xyDiagram1.EnableAxisXZooming = true;
+            xyDiagram1.EnableAxisYScrolling = true;
+            xyDiagram1.EnableAxisYZooming = true;
+            this.chFunction.Diagram = xyDiagram1;
             this.chFunction.Legend.AlignmentVertical = DevExpress.XtraCharts.LegendAlignmentVertical.BottomOutside;
             this.chFunction.Legend.Name = "Default Legend";
             this.chFunction.Legend.TextVisible = false;
             this.chFunction.Legend.Visibility = DevExpress.Utils.DefaultBoolean.False;
             this.chFunction.Location = new System.Drawing.Point(12, 12);
             this.chFunction.Name = "chFunction";
-            series3.Name = "Ряд 1";
-            lineSeriesView3.LineMarkerOptions.Size = 1;
-            lineSeriesView3.LineStyle.Thickness = 1;
-            lineSeriesView3.MarkerVisibility = DevExpress.Utils.DefaultBoolean.False;
+            series1.Name = "Целевая функция";
+            lineSeriesView1.LineMarkerOptions.Size = 1;
+            lineSeriesView1.LineStyle.Thickness = 1;
+            lineSeriesView1.MarkerVisibility = DevExpress.Utils.DefaultBoolean.False;
+            series1.View = lineSeriesView1;
+            series2.Name = "Рассчитанное лучшее решение";
+            series2.View = lineSeriesView2;
+            series3.Name = "Найденные ГА решения";
             series3.View = lineSeriesView3;
-            series4.Name = "Ряд 2";
-            series4.View = lineSeriesView4;
             this.chFunction.SeriesSerializable = new DevExpress.XtraCharts.Series[] {
-        series3,
-        series4};
+        series1,
+        series2,
+        series3};
             this.chFunction.Size = new System.Drawing.Size(386, 270);
             this.chFunction.TabIndex = 7;
             // 
@@ -1001,15 +1008,15 @@
             this.rngPopulationTrack.Name = "rngPopulationTrack";
             this.rngPopulationTrack.Properties.LabelAppearance.Options.UseTextOptions = true;
             this.rngPopulationTrack.Properties.LabelAppearance.TextOptions.HAlignment = DevExpress.Utils.HorzAlignment.Center;
-            trackBarLabel4.Label = "0";
-            trackBarLabel5.Label = "1";
-            trackBarLabel5.Value = 1;
-            trackBarLabel6.Label = "2";
-            trackBarLabel6.Value = 2;
+            trackBarLabel1.Label = "0";
+            trackBarLabel2.Label = "1";
+            trackBarLabel2.Value = 1;
+            trackBarLabel3.Label = "2";
+            trackBarLabel3.Value = 2;
             this.rngPopulationTrack.Properties.Labels.AddRange(new DevExpress.XtraEditors.Repository.TrackBarLabel[] {
-            trackBarLabel4,
-            trackBarLabel5,
-            trackBarLabel6});
+            trackBarLabel1,
+            trackBarLabel2,
+            trackBarLabel3});
             this.rngPopulationTrack.Properties.Maximum = 2;
             this.rngPopulationTrack.Properties.ShowLabels = true;
             this.rngPopulationTrack.Size = new System.Drawing.Size(322, 72);
@@ -1065,11 +1072,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.seFunctionStartValue.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.seFunctionStep.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.teFuncionInput.Properties)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(xyDiagram2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(xyDiagram1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(lineSeriesView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(series1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(lineSeriesView2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(series2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(lineSeriesView3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(series3)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(lineSeriesView4)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(series4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.chFunction)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.meOutPut.Properties)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).EndInit();
