@@ -148,6 +148,8 @@ namespace TestProj
 
         public bool IsOnlyPositive { get { return FunctionStartValue >= 0; } }
 
+        public int PopulationTrack { get; set; }
+
         public Form1()
         {
             InitializeComponent();
@@ -815,7 +817,7 @@ namespace TestProj
             // В зависимости от значения элемента маски выбираем ген того или иного родителя
             for (int i = 0; i < tempParent1.Count; i++)
             {
-                child.Add(mask[i] > 0 ? tempParent1[i] : tempParent2[i]);
+                child.Add(mask[i] == 0 ? tempParent1[i] : tempParent2[i]);
             }
 
             return child;
@@ -1875,9 +1877,12 @@ namespace TestProj
             try
             {
                 DateTime startAlgorithm = DateTime.Now;
-
+                allBestCandidates = new List<List<Candidate>>();
                 meOutPut.Lines = null;
+
                 Population = GenerateFirstPopulation();
+                allBestCandidates.Add(Population);
+
                 DisplayPopulation("Начальная популяция", Population);
 
                 for (int generation = 1; generation <= GenerationSize; generation++)
@@ -1946,11 +1951,13 @@ namespace TestProj
 
                     DisplayText($"Время расчета {generation} поколения = {finishGeneration}");
                     SeparateText();
-
+                    allBestCandidates.Add(Population);
                 }
 
                 var finishAlgorithm = StopTimer(startAlgorithm);
                 lcCalcTimer.Text = $"Время расчета {finishAlgorithm}";
+                rngPopulationTrack.Value = rngPopulationTrack.Properties.Maximum;
+                var bestCandidate = GetBestCandidate();
 
             }
             catch (Exception ex)
@@ -1995,13 +2002,13 @@ namespace TestProj
 
                 GetGlobalExtremumPoint();
 
-                 var t = 0;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
         }
+
         private void GetGlobalExtremumPoint()
         {
             var pointList = chFunction.Series[0].Points.ToList();
@@ -2010,56 +2017,6 @@ namespace TestProj
 
             DisplayExtremumPoint(extremumGlobalPoint);
         }
-
-        /// <summary>
-        /// Изменение количества делений для trackBar'а
-        /// </summary>
-        private void ChangeRangeTrack()
-        {
-            var oldMaxValue = rngPopulationTrack.Properties.Maximum;
-
-            rngPopulationTrack.Properties.Maximum = GenerationSize;
-
-            if (oldMaxValue == GenerationSize)
-                return;
-
-            if (oldMaxValue < GenerationSize)
-                AddRangeLabel();
-            else
-                RemoveRangeLabel();
-        }
-
-        /// <summary>
-        /// Добавление подписи для trackBar'а
-        /// </summary>
-        private void AddRangeLabel()
-        {
-            var maxValue = rngPopulationTrack.Properties.Maximum;
-
-            var index = rngPopulationTrack.Properties.Labels.Count;
-
-            for (; index <= maxValue; index++)
-            {
-                TrackBarLabel trackBarLabel = new TrackBarLabel(index.ToString(), index, true);
-                rngPopulationTrack.Properties.Labels.Add(trackBarLabel);
-            }
-        }
-        /// <summary>
-        /// Удаление подписи для trackBar'а
-        /// </summary>
-        private void RemoveRangeLabel()
-        {
-            var maxValue = rngPopulationTrack.Properties.Maximum;
-
-            var index = rngPopulationTrack.Properties.Labels.Count - 1;
-
-            for (; index > maxValue; index--)
-            {
-                rngPopulationTrack.Properties.Labels.RemoveAt(index);
-            }
-        }
-
-
 
         /// <summary>
         /// Получение максимальной точки на графике
@@ -2110,12 +2067,61 @@ namespace TestProj
         }
 
         /// <summary>
+        /// Изменение количества делений для trackBar'а
+        /// </summary>
+        private void ChangeRangeTrack()
+        {
+            var oldMaxValue = rngPopulationTrack.Properties.Maximum;
+
+            rngPopulationTrack.Properties.Maximum = GenerationSize;
+
+            if (oldMaxValue == GenerationSize)
+                return;
+
+            if (oldMaxValue < GenerationSize)
+                AddRangeLabel();
+            else
+                RemoveRangeLabel();
+        }
+
+        /// <summary>
+        /// Добавление подписи для trackBar'а
+        /// </summary>
+        private void AddRangeLabel()
+        {
+            var maxValue = rngPopulationTrack.Properties.Maximum;
+
+            var index = rngPopulationTrack.Properties.Labels.Count;
+
+            for (; index <= maxValue; index++)
+            {
+                TrackBarLabel trackBarLabel = new TrackBarLabel(index.ToString(), index, true);
+                rngPopulationTrack.Properties.Labels.Add(trackBarLabel);
+            }
+        }
+        
+        /// <summary>
+        /// Удаление подписи для trackBar'а
+        /// </summary>
+        private void RemoveRangeLabel()
+        {
+            var maxValue = rngPopulationTrack.Properties.Maximum;
+
+            var index = rngPopulationTrack.Properties.Labels.Count - 1;
+
+            for (; index > maxValue; index--)
+            {
+                rngPopulationTrack.Properties.Labels.RemoveAt(index);
+            }
+        }
+       
+        /// <summary>
         /// Отобразить точку глобального экстремума на графике
         /// </summary>
         /// <param name="_extremumGlobalPoint">Точкаглобального экстремума</param>
         private void DisplayExtremumPoint(SeriesPoint _extremumGlobalPoint)
         {
-            if (chFunction.Series.Count > 1)
+            if (chFunction.Series[1].Points.Count > 0)
                 chFunction.Series[1].Points.Clear();
 
             Series series1 = chFunction.Series[1];
@@ -2126,6 +2132,38 @@ namespace TestProj
             ((LineSeriesView)series1.View).LineStyle.DashStyle = DashStyle.Dash;
 
             chFunction.Series[1].Points.Add(_extremumGlobalPoint);
+        }
+
+        public List<List<Candidate>> allBestCandidates { get; set; }
+
+        private Candidate GetBestCandidate()
+        {
+            var population = new List<Candidate>();
+            population.AddRange(Population);
+
+            var bestCandidate = population.FirstOrDefault(g=> g.Fitness == population.Max(y => y.Fitness));
+
+            return bestCandidate;
+        }
+        private void ConvertCandidateToSeries()
+        {
+            if (chFunction.Series[2].Points.Count > 0)
+                chFunction.Series[2].Points.Clear();
+
+            var candidateList = allBestCandidates[PopulationTrack];
+
+            Series series2 = chFunction.Series[2];
+
+            ((LineSeriesView)series2.View).MarkerVisibility = DefaultBoolean.True;
+            ((LineSeriesView)series2.View).LineMarkerOptions.Kind = MarkerKind.Circle;
+            ((LineSeriesView)series2.View).LineMarkerOptions.Size = 10;
+            ((LineSeriesView)series2.View).LineStyle.DashStyle = DashStyle.Dash;
+
+            foreach (var item in candidateList)
+            {
+                SeriesPoint seriesPoint = new SeriesPoint(item.DecValue, item.Fitness);
+                series2.Points.Add(seriesPoint);
+            }
         }
 
         private void seFunctionStep_Spin(object sender, DevExpress.XtraEditors.Controls.SpinEventArgs e)
@@ -2447,7 +2485,8 @@ namespace TestProj
         {
             try
             {
-
+                PopulationTrack = Convert.ToInt32(rngPopulationTrack.EditValue);
+                ConvertCandidateToSeries();
             }
             catch (Exception ex)
             {
