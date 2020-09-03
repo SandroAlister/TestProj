@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DisplayResult.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -65,8 +66,15 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="MathFeatures\MathConvert.cs" />
+    <Compile Include="NativeGen\AlgorithmSetting.cs" />
     <Compile Include="NativeGen\Candidate.cs" />
     <Compile Include="NativeGen\Chromosome.cs" />
+    <Compile Include="NativeGen\SelectCross.cs" />
+    <Compile Include="NativeGen\SelectMutate.cs" />
+    <Compile Include="NativeGen\SelectParent.cs" />
+    <Compile Include="NativeGen\SelectSelection.cs" />
+    <Compile Include="NativeGen\SelectTarget.cs" />
+    <Compile Include="NativeGen\GenAlgorithm.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
