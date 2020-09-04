@@ -13,14 +13,17 @@ namespace TestProj.NativeGen
     /// </summary>
     public class GenAlgorithm
     {
+        /// <summary>
+        /// Генератор случайных чисел
+        /// </summary>
+        Random random = new Random();
+
         public GenAlgorithm() { }
         public GenAlgorithm(MemoEdit memoEdit, AlgorithmSetting algorithmSetting)
         {
             DisplayResult = new DisplayResult(memoEdit);
             AlgorithmSetting = algorithmSetting;
         }
-
-        Random random = new Random();
 
         /// <summary>
         /// Отображение результатов 
@@ -47,7 +50,15 @@ namespace TestProj.NativeGen
         /// </summary>
         public List<List<Candidate>> AllBestCandidates { get; set; }
 
-        public void StartProcess()
+        /// <summary>
+        /// Время окончания работы генетического алгоритма
+        /// </summary>
+        public string FinishTimeAlgorithm { get; set; }
+
+        /// <summary>
+        /// Запуск работы генетического алгоритма
+        /// </summary>
+        public void Process()
         {
             try
             {
@@ -139,8 +150,6 @@ namespace TestProj.NativeGen
             }
         }
 
-        public string FinishTimeAlgorithm { get; set; }
-
         /// <summary>
         /// Получение наилучней особи
         /// </summary>
@@ -155,6 +164,11 @@ namespace TestProj.NativeGen
             return bestCandidate;
         }
 
+        /// <summary>
+        /// Получение времени окончания
+        /// </summary>
+        /// <param name="startTime">Начальное время</param>
+        /// <returns>Время окончания</returns>
         private string StopTimer(DateTime startTime)
         {
             DateTime finishTime = DateTime.Now;
@@ -305,7 +319,7 @@ namespace TestProj.NativeGen
         }
 
         /// <summary>
-        /// Рассчет расстояния Хэмминга
+        /// Расчет расстояния Хэмминга
         /// </summary>
         /// <param name="parent1">Последовательность №1</param>
         /// <param name="probablyParent">Последовательность №2</param>
