@@ -18,7 +18,7 @@ using DevExpress.XtraEditors.Repository;
 
 namespace TestProj
 {
-    public partial class Form1 : XtraForm
+    public partial class MainForm : XtraForm
     {
         /// <summary>
         /// Список значений для контрола "Шаг функции"
@@ -54,7 +54,7 @@ namespace TestProj
         /// </summary>
         public GenAlgorithm GenAlgorithm { get; set; }
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             LoadConfig();
@@ -312,7 +312,7 @@ namespace TestProj
             {
                 GenAlgorithm = new GenAlgorithm(meOutPut, AlgorithmSetting);
 
-                GenAlgorithm.StartProcess();
+                GenAlgorithm.Process();
 
                 lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
 
