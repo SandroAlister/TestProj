@@ -397,13 +397,11 @@ namespace TestProj.NativeGen
 
             CompareParents(tempParent1, tempParent2);
 
-            Random rnd = new Random();
-
             Chromosome child = new Chromosome();
 
             for (int i = 0; i < tempParent1.Count; i++)
             {
-                child.Add(rnd.NextDouble() < 0.5 ? tempParent1[i] : tempParent2[i]);
+                child.Add(random.NextDouble() < 0.5 ? tempParent1[i] : tempParent2[i]);
             }
 
             return child;
@@ -425,11 +423,9 @@ namespace TestProj.NativeGen
 
             CompareParents(tempParent1, tempParent2);
 
-            Random rnd = new Random();
-
             Chromosome child = new Chromosome();
 
-            int splitPoint = rnd.Next(1, tempParent1.Count - 1);
+            int splitPoint = random.Next(1, tempParent1.Count - 1);
 
             for (int i = 0; i < tempParent1.Count; i++)
             {
@@ -455,19 +451,17 @@ namespace TestProj.NativeGen
 
             CompareParents(tempParent1, tempParent2);
 
-            Random rnd = new Random();
-
             Chromosome child = new Chromosome();
 
             //Генерируем первую точку разреза
-            int firstSplitPoint = rnd.Next(1, tempParent1.Count - 1);
+            int firstSplitPoint = random.Next(1, tempParent1.Count - 1);
 
             int secondSplitPoint = firstSplitPoint;
 
             //Генерируем вторую точку разреза, которая не равна первой
             while (firstSplitPoint == secondSplitPoint)
             {
-                secondSplitPoint = rnd.Next(1, tempParent1.Count - 1);
+                secondSplitPoint = random.Next(1, tempParent1.Count - 1);
             }
 
             //Меняем местами их, если вторая точка оказывается меньше первой
@@ -516,7 +510,6 @@ namespace TestProj.NativeGen
 
             CompareParents(tempParent1, tempParent2);
 
-            Random rnd = new Random();
             Chromosome child = new Chromosome();
 
             // Задаем список доступных точек разделения
@@ -538,7 +531,7 @@ namespace TestProj.NativeGen
                         break;
 
                     // Получаем индекс из списка индексов родителя
-                    var tempIndexDevidePoint = rnd.Next(0, availableDevidePointList.Count - 1);
+                    var tempIndexDevidePoint = random.Next(0, availableDevidePointList.Count - 1);
 
                     // Получаем точку разделения на основе индекса
                     var tempDevidePoint = availableDevidePointList[tempIndexDevidePoint];
@@ -589,8 +582,6 @@ namespace TestProj.NativeGen
 
             CompareParents(tempParent1, tempParent2);
 
-            Random rnd = new Random();
-
             Chromosome child = new Chromosome();
 
             List<int> mask = new List<int>();
@@ -598,7 +589,7 @@ namespace TestProj.NativeGen
             //Генерируем маску из 0 и 1
             for (int i = 0; i < tempParent1.Count; i++)
             {
-                mask.Add(rnd.Next(2));
+                mask.Add(random.Next(2));
             }
 
             // В зависимости от значения элемента маски выбираем ген того или иного родителя
@@ -685,9 +676,7 @@ namespace TestProj.NativeGen
         /// <param name="chromosome">Хромосома</param>
         private void MutateOnePoint(Chromosome chromosome)
         {
-            Random rnd = new Random();
-
-            int splitPoint = rnd.Next(0, chromosome.Count - 1);
+            int splitPoint = random.Next(0, chromosome.Count - 1);
 
             chromosome[splitPoint] = chromosome[splitPoint] == 1 ? 0 : 1;
         }
@@ -706,8 +695,6 @@ namespace TestProj.NativeGen
             {
                 mutateGeneCount = chromosome.Count;
             }
-
-            Random rnd = new Random();
 
             // Задаем список доступных генов для мутирования
             List<int> availableMutateGeneList = Enumerable.Range(0, chromosome.Count).ToList();
@@ -728,7 +715,7 @@ namespace TestProj.NativeGen
                         break;
 
                     // Получаем индекс из списка доступных генов для мутирования
-                    var tempIndexMutateGene = rnd.Next(0, availableMutateGeneList.Count - 1);
+                    var tempIndexMutateGene = random.Next(0, availableMutateGeneList.Count - 1);
 
                     // Получаем на основе индекса ген, который в дальнейшем мутирует
                     var tempMutateGene = availableMutateGeneList[tempIndexMutateGene];
@@ -780,8 +767,6 @@ namespace TestProj.NativeGen
         /// <param name="chromosome">Хромосома</param>
         private void DensityMutate(Chromosome chromosome)
         {
-            Random rnd = new Random();
-
             for (int i = 0; i < chromosome.Count; i++)
             {
                 var mutationGeneProbability = random.NextDouble();
@@ -797,8 +782,6 @@ namespace TestProj.NativeGen
         /// <param name="chromosome">Хромосома</param>
         private void GeneExchangeMutate(Chromosome chromosome)
         {
-            Random rnd = new Random();
-
             //Если хромосома состоит из 2 генов, то эти 2 гена меняются между собой
             if (chromosome.Count < 3)
             {
@@ -808,7 +791,7 @@ namespace TestProj.NativeGen
             else
             {
                 //Выбранный ген хромосомы
-                int devideGene = rnd.Next(0, chromosome.Count - 1);
+                int devideGene = random.Next(0, chromosome.Count - 1);
 
                 //Если выбран 1 ген, то он меняется местами со 2 геном
                 if (devideGene == 0)
@@ -882,8 +865,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void TruncationSelection()
         {
-            Random rnd = new Random();
-
             var population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -917,7 +898,7 @@ namespace TestProj.NativeGen
             // В итоговую популяцию могут попасть повторяющиеся особи
             for (int i = 0; i < AlgorithmSetting.PopulationSize; i++)
             {
-                totalPopulation.Add(truncationPopulation[rnd.Next(0, countOfCandidateForSelection)]);
+                totalPopulation.Add(truncationPopulation[random.Next(0, countOfCandidateForSelection)]);
             }
 
             Population = totalPopulation;
@@ -958,8 +939,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void RouletteSelection()
         {
-            Random rnd = new Random();
-
             var population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -981,8 +960,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void EqualProbabilityTournament()
         {
-            Random rnd = new Random();
-
             List<Candidate> population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -1007,8 +984,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void ClassicTournament()
         {
-            Random rnd = new Random();
-
             List<Candidate> population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -1033,8 +1008,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void RouletteTournament()
         {
-            Random rnd = new Random();
-
             List<Candidate> population = new List<Candidate>();
 
             // Добавление популяции родителей к созданной популяции
@@ -1128,8 +1101,6 @@ namespace TestProj.NativeGen
         /// <returns>Список групп особей</returns>
         private List<List<Candidate>> GenerateGroups(List<Candidate> _candidateList)
         {
-            Random rnd = new Random();
-
             var groupCount = _candidateList.Count / AlgorithmSetting.GroupSize;
             var modul = _candidateList.Count % AlgorithmSetting.GroupSize;
 
@@ -1162,7 +1133,7 @@ namespace TestProj.NativeGen
                     if (availableList.Count == 0)
                         break;
 
-                    var tempCandidateId = rnd.Next(0, availableList.Count);
+                    var tempCandidateId = random.Next(0, availableList.Count);
                     var tempCandidate = availableList[tempCandidateId];
 
                     // Добавляем особь в популяцию
@@ -1215,6 +1186,12 @@ namespace TestProj.NativeGen
             return newPopulation;
         }
 
+        /// <summary>
+        /// Отбор наилучших особей с равной вероятностью (без дубликатов)
+        /// </summary>
+        /// <param name="_passItemCount">Количество особей, которые выйдут из группы</param>
+        /// <param name="_candidateList">Группа особей</param>
+        /// <returns>Список отобранных особей</returns>
         private List<Candidate> EqualProbWithoutDublicates(int _passItemCount, List<Candidate> _candidateList)
         {
             // Итоговая популяция
@@ -1241,6 +1218,12 @@ namespace TestProj.NativeGen
             return totalPopulation;
         }
 
+        /// <summary>
+        /// Отбор наилучших особей с равной вероятностью
+        /// </summary>
+        /// <param name="_passItemCount">Количество особей, которые выйдут из группы</param>
+        /// <param name="_candidateList">Группа особей</param>
+        /// <returns>Список отобранных особей</returns>
         private List<Candidate> EqualProb(int _passItemCount, List<Candidate> _candidateList)
         {
             // Итоговая популяция
@@ -1265,8 +1248,6 @@ namespace TestProj.NativeGen
         private List<Candidate> GroupSelectionClassic(List<List<Candidate>> _groupList, List<int> _passList)
         {
             var newPopulation = new List<Candidate>();
-
-            Random rnd = new Random();
 
             for (int i = 0; i < _groupList.Count; i++)
             {
@@ -1325,8 +1306,8 @@ namespace TestProj.NativeGen
         /// <summary>
         /// Отбор наилучших особей методом рулетки
         /// </summary>
-        /// <param name="_passItemCount"></param>
-        /// <param name="_candidateList"></param>
+        /// <param name="_passItemCount">Количество особей, которые выйдут из группы</param>
+        /// <param name="_candidateList">Группа особей</param>
         /// <returns></returns>
         private List<Candidate> Roulette(int _passItemCount, List<Candidate> _candidateList)
         {
@@ -1353,9 +1334,9 @@ namespace TestProj.NativeGen
         /// <summary>
         ///  Выбор наилучших особей методом рулетки (без дубликатов)
         /// </summary>
-        /// <param name="_passItemCount">Количество проходящих особей</param>
-        /// <param name="_candidateList">Популяция</param>
-        /// <returns>Отообранная популяция</returns>
+        /// <param name="_passItemCount">Количество особей, которые выйдут из группы</param>
+        /// <param name="_candidateList">Группа особей</param>
+        /// <returns>Список отобранных особей</returns>
         private List<Candidate> RouletteWithoutDuplicate(int _passItemCount, List<Candidate> _candidateList)
         {
             var population = new List<Candidate>();
@@ -1393,7 +1374,7 @@ namespace TestProj.NativeGen
         /// <summary>
         /// Расчет вероятности
         /// </summary>
-        /// <param name="list">Список</param>
+        /// <param name="list">Список особей</param>
         /// <returns>Список вероятности</returns>
         static List<double> CalcProbability(List<Candidate> _candidateList)
         {
