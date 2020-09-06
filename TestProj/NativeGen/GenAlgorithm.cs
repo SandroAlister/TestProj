@@ -1197,32 +1197,13 @@ namespace TestProj.NativeGen
         {
             var newPopulation = new List<Candidate>();
 
-            Random rnd = new Random();
-
             for (int i = 0; i < _groupList.Count; i++)
             {
-                var availableList = new List<Candidate>();
-                availableList.AddRange(_groupList[i]);
+                var tempList = new List<Candidate>();
 
-                // Группа
-                List<Candidate> tempGroup = new List<Candidate>();
+                tempList = AlgorithmSetting.IsDuplicate ? EqualProb(_passList[i], _groupList[i]) : EqualProbWithoutDublicates(_passList[i], _groupList[i]);
 
-                for (int item = 0; item < _passList[i]; item++)
-                {
-                    if (availableList.Count == 0)
-                        break;
-
-                    var tempCandidateId = rnd.Next(0, availableList.Count);
-                    var tempCandidate = availableList[tempCandidateId];
-
-                    // Добавляем особь в популяцию
-                    tempGroup.Add(tempCandidate);
-
-                    // Удаляем значение из списка доступных особей
-                    availableList.RemoveAt(tempCandidateId);
-                }
-
-                newPopulation.AddRange(tempGroup);
+                newPopulation.AddRange(tempList);
             }
 
             if (AlgorithmSetting.IsDisplay)
@@ -1232,6 +1213,47 @@ namespace TestProj.NativeGen
             }
 
             return newPopulation;
+        }
+
+        private List<Candidate> EqualProbWithoutDublicates(int _passItemCount, List<Candidate> _candidateList)
+        {
+            // Итоговая популяция
+            List<Candidate> totalPopulation = new List<Candidate>();
+
+            var availableList = new List<Candidate>();
+            availableList.AddRange(_candidateList);
+
+            for (int item = 0; item < _passItemCount; item++)
+            {
+                if (availableList.Count == 0)
+                    break;
+
+                var tempCandidateId = random.Next(0, availableList.Count);
+                var tempCandidate = availableList[tempCandidateId];
+
+                // Добавляем особь в популяцию
+                totalPopulation.Add(tempCandidate);
+
+                // Удаляем значение из списка доступных особей
+                availableList.RemoveAt(tempCandidateId);
+            }
+
+            return totalPopulation;
+        }
+
+        private List<Candidate> EqualProb(int _passItemCount, List<Candidate> _candidateList)
+        {
+            // Итоговая популяция
+            List<Candidate> totalPopulation = new List<Candidate>();
+
+            while (totalPopulation.Count < _passItemCount)
+            {
+                var index = random.Next(0, _candidateList.Count);
+
+                totalPopulation.Add(_candidateList[index]);
+            }
+
+            return totalPopulation;
         }
 
         /// <summary>
@@ -1258,7 +1280,7 @@ namespace TestProj.NativeGen
                     tempList.Reverse();
                 }
 
-                var totalTempList = tempList.Take(2).ToList();
+                var totalTempList = tempList.Take(_passList[i]).ToList();
 
                 newPopulation.AddRange(totalTempList);
             }
@@ -1308,8 +1330,6 @@ namespace TestProj.NativeGen
         /// <returns></returns>
         private List<Candidate> Roulette(int _passItemCount, List<Candidate> _candidateList)
         {
-            Random rnd = new Random();
-
             var probabilityList = CalcProbability(_candidateList);
 
             //Общее значение функции приспособленности
@@ -1320,7 +1340,7 @@ namespace TestProj.NativeGen
 
             while (totalPopulation.Count < _passItemCount)
             {
-                var probability = rnd.NextDouble();
+                var probability = random.NextDouble();
 
                 var index = probabilityList.FindIndex(g => probability < g);
 
@@ -1338,8 +1358,6 @@ namespace TestProj.NativeGen
         /// <returns>Отообранная популяция</returns>
         private List<Candidate> RouletteWithoutDuplicate(int _passItemCount, List<Candidate> _candidateList)
         {
-            Random rnd = new Random();
-
             var population = new List<Candidate>();
 
             population.AddRange(_candidateList);
@@ -1360,7 +1378,7 @@ namespace TestProj.NativeGen
                 {
                     var probabilityList = CalcProbability(availableList);
 
-                    var probability = rnd.NextDouble();
+                    var probability = random.NextDouble();
                     var index = probabilityList.FindIndex(g => probability < g);
 
                     totalPopulation.Add(availableList[index]);
@@ -1408,8 +1426,6 @@ namespace TestProj.NativeGen
         /// </summary>
         private void BolzmanSelection()
         {
-            Random rnd = new Random();
-
             var population = new List<Candidate>();
             var totalPopulation = new List<Candidate>();
 
@@ -1420,18 +1436,18 @@ namespace TestProj.NativeGen
 
             for (int i = 0; i < AlgorithmSetting.PopulationSize; i++)
             {
-                int firstCandidate = rnd.Next(0, population.Count);
+                int firstCandidate = random.Next(0, population.Count);
                 int secondCandidate = 0;
 
                 do
                 {
-                    secondCandidate = rnd.Next(0, population.Count);
+                    secondCandidate = random.Next(0, population.Count);
                 }
                 while (secondCandidate == firstCandidate);
 
                 double probability = 1 / (1 + Math.Exp((population[firstCandidate].Fitness - population[secondCandidate].Fitness) / Temperature));
 
-                double randomValue = rnd.NextDouble();
+                double randomValue = random.NextDouble();
 
                 if (probability > randomValue)
                     totalPopulation.Add(population[firstCandidate]);
