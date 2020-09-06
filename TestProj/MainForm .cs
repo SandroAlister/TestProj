@@ -15,6 +15,7 @@ using DevExpress.Charts.Native;
 using DevExpress.XtraCharts;
 using DevExpress.Utils;
 using DevExpress.XtraEditors.Repository;
+using DevExpress.XtraEditors.Controls;
 
 namespace TestProj
 {
@@ -104,7 +105,7 @@ namespace TestProj
                 seMutationGeneProbability.Enabled = AlgorithmSetting.SelectMutate == SelectMutate.DensityMutate ? true : false;
                 seSelectionTreshold.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.TruncationSelection ? true : false;
                 seGroupSize.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
-                ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
+                ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
                 ceIsDisplay.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
 
                 sbStart.Enabled = false;
@@ -306,25 +307,6 @@ namespace TestProj
             return leftLessRightValue;
         }
 
-        private void sbStart_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                GenAlgorithm = new GenAlgorithm(meOutPut, AlgorithmSetting);
-
-                GenAlgorithm.Process();
-
-                lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
-
-                rngPopulationTrack.Value = rngPopulationTrack.Properties.Maximum;
-                GenAlgorithm.GetBestCandidate();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
         private void sbFunctionEnter_Click(object sender, EventArgs e)
         {
             try
@@ -349,6 +331,25 @@ namespace TestProj
                 GetGlobalExtremumPoint();
 
                 sbStart.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void sbStart_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                GenAlgorithm = new GenAlgorithm(meOutPut, AlgorithmSetting);
+
+                GenAlgorithm.Process();
+
+                lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
+
+                rngPopulationTrack.Value = rngPopulationTrack.Properties.Maximum;
+                GenAlgorithm.GetBestCandidate();
             }
             catch (Exception ex)
             {
@@ -481,6 +482,9 @@ namespace TestProj
             chFunction.Series[1].Points.Add(_extremumGlobalPoint);
         }
 
+        /// <summary>
+        /// Преобразование особи в точку на графике
+        /// </summary>
         private void ConvertCandidateToSeries()
         {
             if (chFunction.Series[2].Points.Count > 0)
@@ -502,7 +506,7 @@ namespace TestProj
             }
         }
 
-        private void seFunctionStep_Spin(object sender, DevExpress.XtraEditors.Controls.SpinEventArgs e)
+        private void seFunctionStep_Spin(object sender, SpinEventArgs e)
         {
             try
             {
@@ -698,7 +702,8 @@ namespace TestProj
                                       AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament ||
                                       AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament ? true : false;
 
-                ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ||
+                ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament ||
+                                        AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ||
                                         AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection ? true : false;
             }
             catch (Exception ex)
