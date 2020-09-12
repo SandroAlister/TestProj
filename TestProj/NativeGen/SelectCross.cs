@@ -12,8 +12,8 @@ namespace TestProj.NativeGen
     /// </summary>
     public enum SelectCross
     {
-        [Description("Дискретная рекомбинация")]
-        DiscreteRecombination,
+        ////[Description("Дискретная рекомбинация")]
+        ////DiscreteRecombination,
 
         [Description("Одноточечный кроссинговер")]
         CrossingoverSinglePoint,

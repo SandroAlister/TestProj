@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TestProj.NativeGen;
 
 namespace TestProj.MathFeatures
 {
@@ -279,5 +280,22 @@ namespace TestProj.MathFeatures
 
             return strNumber;
         }
+
+        public static List<SelectSelection> ConvertStringToSelection(string str)
+        {
+            //Разделение входной строки на подстроки и удаление пробелов, запятых и пустых элементов
+            var valueList = str.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            List<SelectSelection> selectionList = new List<SelectSelection>();
+
+            foreach (var item in valueList)
+            {
+                var selection = Enum.Parse(typeof(SelectSelection), item);
+                selectionList.Add((SelectSelection)selection);
+            }
+
+            return selectionList;
+        }
+
     }
 }

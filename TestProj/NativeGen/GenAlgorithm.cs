@@ -24,6 +24,13 @@ namespace TestProj.NativeGen
             DisplayResult = new DisplayResult(memoEdit);
             AlgorithmSetting = algorithmSetting;
         }
+        public GenAlgorithm(MemoEdit memoEdit, AlgorithmSetting algorithmSetting, List<Candidate> firstPopulation)
+        {
+            DisplayResult = new DisplayResult(memoEdit);
+            AlgorithmSetting = algorithmSetting;
+            Population = new List<Candidate>();
+            Population.AddRange(firstPopulation);
+        }
 
         /// <summary>
         /// Отображение результатов 
@@ -55,6 +62,13 @@ namespace TestProj.NativeGen
         /// </summary>
         public string FinishTimeAlgorithm { get; set; }
 
+        public List<Candidate> FirstCandidateList { get; set; }
+
+        public void ClearPopulation()
+        {
+            Population = new List<Candidate>();
+        }
+
         /// <summary>
         /// Запуск работы генетического алгоритма
         /// </summary>
@@ -62,13 +76,14 @@ namespace TestProj.NativeGen
         {
             try
             {
-
                 DisplayResult.ClearText();
                 DateTime startAlgorithm = DateTime.Now;
 
                 AllBestCandidates = new List<List<Candidate>>();
 
-                Population = GenerateFirstPopulation();
+                if(!AlgorithmSetting.IsCompareMethods || Population.Count == 0)
+                    Population = GenerateFirstPopulation();
+
                 AllBestCandidates.Add(Population);
 
                 DisplayResult.DisplayPopulation("Начальная популяция", Population);
@@ -84,14 +99,16 @@ namespace TestProj.NativeGen
                     // Скрещивание и мутация
                     for (int parent1_ID = 0; parent1_ID < AlgorithmSetting.PopulationSize; parent1_ID++)
                     {
-                        DisplayResult.DisplayText($"Скрещивание {MathConvert.ConvertBinToString(Population[parent1_ID].Chromosome)}");
+                        if (AlgorithmSetting.IsDisplayCrossResult)
+                            DisplayResult.DisplayText($"Скрещивание {MathConvert.ConvertBinToString(Population[parent1_ID].Chromosome)}");
 
                         // Выбираем 2 Родителя
                         int parent2_ID = SelectParents(parent1_ID);
 
                         if (parent2_ID < 0)
                         {
-                            DisplayResult.DisplayText($"СКРЕЩИВАНИЕ НЕ УДАЛОСЬ!");
+                            if (AlgorithmSetting.IsDisplayCrossResult)
+                                DisplayResult.DisplayText($"СКРЕЩИВАНИЕ НЕ УДАЛОСЬ!");
                             continue;
                         }
 
@@ -101,23 +118,31 @@ namespace TestProj.NativeGen
                         Candidate childCandidate = new Candidate();
                         Chromosome child = Crossover(parent1, parent2);
 
-                        DisplayResult.DisplayText($"Родитель №1: {MathConvert.ConvertBinToString(parent1)}");
-                        DisplayResult.DisplayText($"Родитель №2: {MathConvert.ConvertBinToString(parent2)}");
-                        DisplayResult.DisplayText($"Потомок: {MathConvert.ConvertBinToString(child)}");
+                        if(AlgorithmSetting.IsDisplayCrossResult)
+                        {
+                            DisplayResult.DisplayText($"Родитель №1: {MathConvert.ConvertBinToString(parent1)}");
+                            DisplayResult.DisplayText($"Родитель №2: {MathConvert.ConvertBinToString(parent2)}");
+                            DisplayResult.DisplayText($"Потомок: {MathConvert.ConvertBinToString(child)}");
+                        }
 
                         var mutationProbability = random.NextDouble();
-                        DisplayResult.AddNewLine();
 
-                        DisplayResult.DisplayText($"Вероятность мутации у потомка: {mutationProbability}");
+                        if (AlgorithmSetting.IsDisplayMutateResult)
+                        {
+                            DisplayResult.AddNewLine();
+                            DisplayResult.DisplayText($"Вероятность мутации у потомка: {mutationProbability}");
+                        }
 
                         if (mutationProbability <= AlgorithmSetting.MutationProbability)
                         {
                             Mutate(child);
-                            DisplayResult.DisplayText($"Мутировавший потомок: {MathConvert.ConvertBinToString(child)}");
+                            if(AlgorithmSetting.IsDisplayMutateResult)
+                                DisplayResult.DisplayText($"Мутировавший потомок: {MathConvert.ConvertBinToString(child)}");
                         }
                         else
                         {
-                            DisplayResult.DisplayText($"МУТАЦИЯ НЕ УДАЛАСЬ!");
+                            if (AlgorithmSetting.IsDisplayMutateResult)
+                                DisplayResult.DisplayText($"МУТАЦИЯ НЕ УДАЛАСЬ!");
                         }
 
                         DisplayResult.AddNewLine();
@@ -186,7 +211,7 @@ namespace TestProj.NativeGen
         /// Генерация первого поколения
         /// </summary>
         /// <returns></returns>
-        private List<Candidate> GenerateFirstPopulation()
+        public List<Candidate> GenerateFirstPopulation()
         {
             //Случайным образом выбираем неповторяющиеся десятичные числа 
             List<int> list = new List<int>();
@@ -216,6 +241,9 @@ namespace TestProj.NativeGen
                     Fitness = AlgorithmSetting.CalcFunction(Convert.ToDouble(list[index]))
                 });
             }
+
+            FirstCandidateList = new List<Candidate>();
+            FirstCandidateList.AddRange(population);
 
             return population;
         }
@@ -361,9 +389,9 @@ namespace TestProj.NativeGen
 
             switch (AlgorithmSetting.SelectCross)
             {
-                case SelectCross.DiscreteRecombination:
-                    child = DiscreteRecombination(parent1, parent2);
-                    break;
+                //case SelectCross.DiscreteRecombination:
+                //    child = DiscreteRecombination(parent1, parent2);
+                //    break;
                 case SelectCross.CrossingoverSinglePoint:
                     child = CrossingoverSinglePoint(parent1, parent2);
                     break;
@@ -1083,7 +1111,7 @@ namespace TestProj.NativeGen
                 calcListSize += differ;
             }
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayText($"Среднее количество особей выходящих из группы: {avgPassItemCount}");
                 DisplayResult.DisplayList(passList, "Список особей выходящих из группы");
@@ -1107,7 +1135,7 @@ namespace TestProj.NativeGen
             if (modul > 0)
                 groupCount++;
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayText($"Размер популяции: {_candidateList.Count}");
                 DisplayResult.DisplayText($"Размер группы: {AlgorithmSetting.GroupSize}");
@@ -1143,13 +1171,13 @@ namespace TestProj.NativeGen
                     availableList.RemoveAt(tempCandidateId);
                 }
 
-                if (AlgorithmSetting.IsDisplay)
+                if (AlgorithmSetting.IsDisplaySelectionResult)
                     DisplayResult.DisplayList(tempGroup, $"Группа №{group}");
 
                 groupList.Add(tempGroup);
             }
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayText($"Количество групп: {groupList.Count}");
                 DisplayResult.AddNewLine();
@@ -1177,7 +1205,7 @@ namespace TestProj.NativeGen
                 newPopulation.AddRange(tempList);
             }
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayList(newPopulation, "Новая популяция");
                 DisplayResult.AddNewLine();
@@ -1200,7 +1228,7 @@ namespace TestProj.NativeGen
             var availableList = new List<Candidate>();
             availableList.AddRange(_candidateList);
 
-            for (int item = 0; item < _passItemCount; item++)
+            while (totalPopulation.Count < _passItemCount)
             {
                 if (availableList.Count == 0)
                     break;
@@ -1266,7 +1294,7 @@ namespace TestProj.NativeGen
                 newPopulation.AddRange(totalTempList);
             }
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayList(newPopulation, "Новая популяция");
                 DisplayResult.AddNewLine();
@@ -1294,7 +1322,7 @@ namespace TestProj.NativeGen
                 newPopulation.AddRange(tempList);
             }
 
-            if (AlgorithmSetting.IsDisplay)
+            if (AlgorithmSetting.IsDisplaySelectionResult)
             {
                 DisplayResult.DisplayList(newPopulation, "Новая популяция");
                 DisplayResult.AddNewLine();

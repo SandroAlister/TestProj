@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static TestProj.Function;
 
 namespace TestProj.NativeGen
 {
     /// <summary>
     /// Настройки генетического алгоритма
     /// </summary>
-    public class AlgorithmSetting
-    {
+    public class AlgorithmSetting : ICloneable
+    { 
         public AlgorithmSetting() { }
 
         /// <summary>
@@ -76,12 +77,24 @@ namespace TestProj.NativeGen
         /// <summary>
         /// Отображать промежуточные данные для турнира
         /// </summary>
-        public bool IsDisplay { get; set; }
+        public bool IsDisplaySelectionResult { get; set; }
+
+        /// <summary>
+        /// Отображать рещультаты мутации
+        /// </summary>
+        public bool IsDisplayMutateResult { get; set; }
+
+        /// <summary>
+        /// Отоборажать результаты скрещивания
+        /// </summary>
+        public bool IsDisplayCrossResult { get; set; }
+
+        public bool IsCompareMethods { get; set; }
 
         /// <summary>
         /// Выбранная функция
         /// </summary>
-        public Function.CalcFunction CalcFunction { get; set; }
+        public CalcFunction CalcFunction { get; set; }
 
         /// <summary>
         /// Выбранная цель
@@ -108,6 +121,36 @@ namespace TestProj.NativeGen
         /// </summary>
         public SelectSelection SelectSelection { get; set; }
 
-
+        /// <summary>
+        /// Копирование объекта
+        /// </summary>
+        /// <returns></returns>
+        public object Clone()
+        {
+            return new AlgorithmSetting
+            {
+                GenerationSize = this.GenerationSize,
+                PopulationSize = this.PopulationSize,
+                FunctionStartValue = this.GenerationSize,
+                FunctionFinishValue = this.FunctionFinishValue,
+                CrossDevidePointCount = this.CrossDevidePointCount,
+                MutationProbability = this.MutationProbability,
+                MutateGeneCount = this.MutateGeneCount,
+                MutationGeneProbability = this.MutationGeneProbability,
+                SelectionTreshold = this.SelectionTreshold,
+                GroupSize = this.GroupSize,
+                IsDuplicate = this.IsDuplicate,
+                IsDisplaySelectionResult = this.IsDisplaySelectionResult,
+                IsDisplayMutateResult = this.IsDisplayMutateResult,
+                IsDisplayCrossResult = this.IsDisplayCrossResult,
+                IsCompareMethods = this.IsCompareMethods,
+                CalcFunction = this.CalcFunction,
+                SelectTarget = this.SelectTarget,
+                SelectParent = this.SelectParent,
+                SelectCross = this.SelectCross,
+                SelectMutate = this.SelectMutate,
+                SelectSelection = this.SelectSelection
+            };
+        }
     }
 }
