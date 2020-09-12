@@ -55,6 +55,21 @@ namespace TestProj
         /// </summary>
         public GenAlgorithm GenAlgorithm { get; set; }
 
+        /// <summary>
+        /// Настройки аналитики
+        /// </summary>
+        public AnalysisSetting AnalysisSetting { get; set; }
+
+        /// <summary>
+        /// Аналитика методов генетического алгоритма
+        /// </summary>
+        public GenAnalysis GenAnalysis { get; set; }
+
+        /// <summary>
+        /// Рассчитанная точка экстремума
+        /// </summary>
+        private SeriesPoint ExtremumPoint { get; set; }
+
         public MainForm()
         {
             InitializeComponent();
@@ -97,7 +112,9 @@ namespace TestProj
                 AlgorithmSetting.MutateGeneCount = Convert.ToInt32(seMutateGeneCount.EditValue);
                 AlgorithmSetting.GroupSize = Convert.ToInt32(seGroupSize.EditValue);
                 AlgorithmSetting.IsDuplicate = Convert.ToBoolean(ceIsDuplicate.EditValue);
-                AlgorithmSetting.IsDisplay = Convert.ToBoolean(ceIsDisplay.EditValue);
+                AlgorithmSetting.IsDisplaySelectionResult = Convert.ToBoolean(ceIsDisplaySelectionResult.EditValue);
+                AlgorithmSetting.IsDisplayMutateResult = Convert.ToBoolean(ceIsDisplayMutateResult.EditValue);
+                AlgorithmSetting.IsDisplayCrossResult = Convert.ToBoolean(ceIsDisplayCrossResult.EditValue);
 
                 // Блокирование контролов в зависимости от настроек ГА
                 seDevidePointCount.Enabled = AlgorithmSetting.SelectCross == SelectCross.CrossingoverNPoint ? true : false;
@@ -106,12 +123,18 @@ namespace TestProj
                 seSelectionTreshold.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.TruncationSelection ? true : false;
                 seGroupSize.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
                 ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
-                ceIsDisplay.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
+                ceIsDisplaySelectionResult.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
 
+                rngPopulationTrack.Enabled = false;
                 sbStart.Enabled = false;
 
                 ChangeRangeTrack();
 
+                AnalysisSetting = new AnalysisSetting(AlgorithmSetting)
+                {
+                    RunAmount = Convert.ToInt32(seRunAmount.EditValue)
+                };
+                LoadAnalysisSelection();
             }
             catch (Exception ex)
             {
@@ -294,6 +317,30 @@ namespace TestProj
             AlgorithmSetting.SelectSelection = (SelectSelection)enumList[0].value;
         }
 
+        /// <summary>
+        /// Загрузка значений в выпадающий список анализируемых методов селекции
+        /// </summary>
+        private void LoadAnalysisSelection()
+        {
+
+            var enumList = Enum.GetValues(typeof(SelectSelection))
+            .Cast<Enum>()
+            .Select(value => new
+            {
+                (Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute).Description,
+                value
+            })
+            .OrderBy(item => item.value)
+            .ToList();
+
+            foreach (var item in enumList)
+            {
+                lueAnalysisSelectionMethods.Properties.Items.Add(item.value, item.Description);
+            }
+
+            AnalysisSetting.SelectionList = new List<SelectSelection>();
+        }
+
         #endregion
 
         /// <summary>
@@ -328,7 +375,8 @@ namespace TestProj
                     chFunction.Series[0].Points.Add(new SeriesPoint(i, AlgorithmSetting.CalcFunction(i)));
                 }
 
-                GetGlobalExtremumPoint();
+                ExtremumPoint = GetGlobalExtremumPoint(chFunction, 0);
+                DisplayExtremumPoint(ExtremumPoint, chFunction, 1);
 
                 sbStart.Enabled = true;
             }
@@ -348,8 +396,12 @@ namespace TestProj
 
                 lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
 
+                rngPopulationTrack.Enabled = true;
                 rngPopulationTrack.Value = rngPopulationTrack.Properties.Maximum;
+                ConvertCandidateToSeries(chFunction, 2, GenAlgorithm.AllBestCandidates[PopulationTrack]);
+                MessageBox.Show($"Наилучшее решение:{GenAlgorithm.GetBestCandidate().DecValue}");
                 GenAlgorithm.GetBestCandidate();
+
             }
             catch (Exception ex)
             {
@@ -357,13 +409,19 @@ namespace TestProj
             }
         }
 
-        private void GetGlobalExtremumPoint()
+        /// <summary>
+        /// Получение точки экстремума
+        /// </summary>
+        /// <param name="chartControl">График</param>
+        /// <param name="indexSeries">Индекс серии</param>
+        /// <returns>Точка экстремума</returns>
+        private SeriesPoint GetGlobalExtremumPoint(ChartControl chartControl, int indexSeries)
         {
-            var pointList = chFunction.Series[0].Points.ToList();
+            var pointList = chartControl.Series[indexSeries].Points.ToList();
 
             var extremumGlobalPoint = AlgorithmSetting.SelectTarget == SelectTarget.Maxinum ? GetMaxPoint(pointList) : GetMinPoint(pointList);
 
-            DisplayExtremumPoint(extremumGlobalPoint);
+            return extremumGlobalPoint;
         }
 
         /// <summary>
@@ -415,6 +473,49 @@ namespace TestProj
         }
 
         /// <summary>
+        /// Отоборажение точки глобального экстремума на графике
+        /// </summary>
+        /// <param name="_extremumGlobalPoint">Точка глобального экстремума</param>
+        private void DisplayExtremumPoint(SeriesPoint _extremumGlobalPoint, ChartControl _chartControl, int _seriesIndex)
+        {
+            if (_chartControl.Series[_seriesIndex].Points.Count > 0)
+                _chartControl.Series[_seriesIndex].Points.Clear();
+
+            Series series1 = _chartControl.Series[_seriesIndex];
+
+            ((LineSeriesView)series1.View).MarkerVisibility = DefaultBoolean.True;
+            ((LineSeriesView)series1.View).LineMarkerOptions.Kind = MarkerKind.Circle;
+            ((LineSeriesView)series1.View).LineMarkerOptions.Size = 10;
+            ((LineSeriesView)series1.View).LineStyle.DashStyle = DashStyle.Dash;
+
+            _chartControl.Series[_seriesIndex].Points.Add(_extremumGlobalPoint);
+        }
+
+        /// <summary>
+        /// Преобразование особи в точку на графике
+        /// </summary>
+        private void ConvertCandidateToSeries(ChartControl _chartControl, int _seriesIndex, List<Candidate> _candidateList)
+        {
+            if (_chartControl.Series[_seriesIndex].Points.Count > 0)
+                _chartControl.Series[_seriesIndex].Points.Clear();
+
+            //var candidateList = GenAlgorithm.AllBestCandidates[PopulationTrack];
+
+            Series series = chFunction.Series[_seriesIndex];
+
+            ((LineSeriesView)series.View).MarkerVisibility = DefaultBoolean.True;
+            ((LineSeriesView)series.View).LineMarkerOptions.Kind = MarkerKind.Circle;
+            ((LineSeriesView)series.View).LineMarkerOptions.Size = 10;
+            ((LineSeriesView)series.View).LineStyle.DashStyle = DashStyle.Dash;
+
+            foreach (var item in _candidateList)
+            {
+                SeriesPoint seriesPoint = new SeriesPoint(item.DecValue, item.Fitness);
+                series.Points.Add(seriesPoint);
+            }
+        }
+
+        /// <summary>
         /// Изменение количества делений для trackBar'а
         /// </summary>
         private void ChangeRangeTrack()
@@ -447,7 +548,7 @@ namespace TestProj
                 rngPopulationTrack.Properties.Labels.Add(trackBarLabel);
             }
         }
-        
+
         /// <summary>
         /// Удаление подписи для trackBar'а
         /// </summary>
@@ -460,49 +561,6 @@ namespace TestProj
             for (; index > maxValue; index--)
             {
                 rngPopulationTrack.Properties.Labels.RemoveAt(index);
-            }
-        }
-       
-        /// <summary>
-        /// Отобразить точку глобального экстремума на графике
-        /// </summary>
-        /// <param name="_extremumGlobalPoint">Точкаглобального экстремума</param>
-        private void DisplayExtremumPoint(SeriesPoint _extremumGlobalPoint)
-        {
-            if (chFunction.Series[1].Points.Count > 0)
-                chFunction.Series[1].Points.Clear();
-
-            Series series1 = chFunction.Series[1];
-
-            ((LineSeriesView)series1.View).MarkerVisibility = DefaultBoolean.True;
-            ((LineSeriesView)series1.View).LineMarkerOptions.Kind = MarkerKind.Circle;
-            ((LineSeriesView)series1.View).LineMarkerOptions.Size = 10;
-            ((LineSeriesView)series1.View).LineStyle.DashStyle = DashStyle.Dash;
-
-            chFunction.Series[1].Points.Add(_extremumGlobalPoint);
-        }
-
-        /// <summary>
-        /// Преобразование особи в точку на графике
-        /// </summary>
-        private void ConvertCandidateToSeries()
-        {
-            if (chFunction.Series[2].Points.Count > 0)
-                chFunction.Series[2].Points.Clear();
-            
-            var candidateList = GenAlgorithm.AllBestCandidates[PopulationTrack];
-
-            Series series2 = chFunction.Series[2];
-
-            ((LineSeriesView)series2.View).MarkerVisibility = DefaultBoolean.True;
-            ((LineSeriesView)series2.View).LineMarkerOptions.Kind = MarkerKind.Circle;
-            ((LineSeriesView)series2.View).LineMarkerOptions.Size = 10;
-            ((LineSeriesView)series2.View).LineStyle.DashStyle = DashStyle.Dash;
-
-            foreach (var item in candidateList)
-            {
-                SeriesPoint seriesPoint = new SeriesPoint(item.DecValue, item.Fitness);
-                series2.Points.Add(seriesPoint);
             }
         }
 
@@ -611,7 +669,7 @@ namespace TestProj
 
                 AlgorithmSetting.SelectTarget = (SelectTarget)lookUpEdit.EditValue;
 
-                if (AlgorithmSetting.SelectTarget == SelectTarget.Minimum && 
+                if (AlgorithmSetting.SelectTarget == SelectTarget.Minimum &&
                    (AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament))
                 {
                     MessageBox.Show("Метод селекции: Колесо рулетки не может использоваться" +
@@ -688,7 +746,7 @@ namespace TestProj
                                       AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament ? true : false;
 
 
-                if (AlgorithmSetting.SelectTarget == SelectTarget.Minimum && 
+                if (AlgorithmSetting.SelectTarget == SelectTarget.Minimum &&
                    (AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament))
                 {
                     MessageBox.Show("Метод селекции: Колесо рулетки не может использоваться" +
@@ -697,7 +755,7 @@ namespace TestProj
                     lueSelectTarget.EditValue = SelectTarget.Maxinum;
                 }
 
-                ceIsDisplay.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection ||
+                ceIsDisplaySelectionResult.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection ||
                                       AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ||
                                       AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament ||
                                       AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament ? true : false;
@@ -802,7 +860,31 @@ namespace TestProj
         {
             try
             {
-                AlgorithmSetting.IsDisplay = Convert.ToBoolean(ceIsDisplay.EditValue);
+                AlgorithmSetting.IsDisplaySelectionResult = Convert.ToBoolean(ceIsDisplaySelectionResult.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void ceIsDisplayMutateResult_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                AlgorithmSetting.IsDisplayMutateResult = Convert.ToBoolean(ceIsDisplayMutateResult.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void ceIsDisplayCrossResult_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                AlgorithmSetting.IsDisplayCrossResult = Convert.ToBoolean(ceIsDisplayCrossResult.EditValue);
             }
             catch (Exception ex)
             {
@@ -827,7 +909,7 @@ namespace TestProj
             try
             {
                 PopulationTrack = Convert.ToInt32(rngPopulationTrack.EditValue);
-                ConvertCandidateToSeries();
+                ConvertCandidateToSeries(chFunction, 2, GenAlgorithm.AllBestCandidates[PopulationTrack]);
             }
             catch (Exception ex)
             {
@@ -835,8 +917,138 @@ namespace TestProj
             }
         }
 
+        private void seRunAmount_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                AnalysisSetting.RunAmount = Convert.ToInt32(seRunAmount.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void lueAnalysisSelectionMethods_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                var checkedComboBoxEdit = sender as CheckedComboBoxEdit;
+
+                var values = checkedComboBoxEdit.EditValue.ToString();
+
+                AnalysisSetting.SelectionList = MathConvert.ConvertStringToSelection(values);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
         #endregion
 
+        private void sbAnalysis_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (AnalysisSetting.SelectionList.Count == 0)
+                {
+                    MessageBox.Show("Выберите пожалуйста методы селекции для сравнения!");
+                    return;
+                }
+
+                AnalysisSetting.RefreshValues(AlgorithmSetting);
+                GenAnalysis = new GenAnalysis(meOutputAnalysis, AnalysisSetting);
+                GenAnalysis.Start();
+                DisplayChartAnalysis();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        #region Методы аналитики
+
+        /// <summary>
+        /// Отображение результатов аналитики на графике
+        /// </summary>
+        private void DisplayChartAnalysis()
+        {
+            try
+            {
+                chAnalysis.Series.Clear();
+
+                Series series = new Series("Идеал", ViewType.Line);
+
+                for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
+                {
+                    series.Points.Add(new SeriesPoint(run, ExtremumPoint.Values[0]));
+                }
+
+                chAnalysis.Series.Add(series);
+
+                foreach (var item in GenAnalysis.ResultDictionary)
+                {
+                    //var name = item.Key as SelectSelection;
+
+                    var strName = GetMethodName(item.Key);
+
+                    var otherSeries = GetCandidateSeries(strName, item.Value);
+
+                    chAnalysis.Series.Add(otherSeries);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Получение локализованного названия метода селекции
+        /// </summary>
+        /// <param name="selectSelection">Метод селекции</param>
+        /// <returns>Локализованное название метода селекции</returns>
+        private string GetMethodName(object selectSelection)
+        {
+            // Получение списка всех элементов перечисления методов селекции
+            var enumList = Enum.GetValues(typeof(SelectSelection))
+           .Cast<Enum>()
+           .Select(value => new
+           {
+               (Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute).Description,
+               value
+           })
+           .OrderBy(item => item.value)
+           .ToList();
+
+            var selectItem = enumList.Find(g => g.value.ToString() == selectSelection.ToString());
+            string methodName = selectItem.Description;
+
+            return methodName;
+        }
+
+        /// <summary>
+        /// Получение серии точек на основе входящей последовательности
+        /// </summary>
+        /// <param name="_text">Название серии</param>
+        /// <param name="_candidateList">Список особей</param>
+        /// <returns>Серия точек для отображения на графике</returns>
+        private Series GetCandidateSeries(string _text, List<Candidate> _candidateList)
+        {
+            Series series = new Series(_text, ViewType.Line);
+
+            for(int run = 1; run <= AnalysisSetting.RunAmount; run++)
+            {
+                series.Points.Add(new SeriesPoint(run, _candidateList[run - 1].DecValue));
+            }
+
+            return series;
+        }
+
+        #endregion
     }
 
     #region Function

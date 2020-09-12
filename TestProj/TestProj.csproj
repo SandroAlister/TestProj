@@ -67,8 +67,10 @@
     </Compile>
     <Compile Include="MathFeatures\MathConvert.cs" />
     <Compile Include="NativeGen\AlgorithmSetting.cs" />
+    <Compile Include="NativeGen\AnalysisSetting.cs" />
     <Compile Include="NativeGen\Candidate.cs" />
     <Compile Include="NativeGen\Chromosome.cs" />
+    <Compile Include="NativeGen\GenAnalysis.cs" />
     <Compile Include="NativeGen\SelectCross.cs" />
     <Compile Include="NativeGen\SelectMutate.cs" />
     <Compile Include="NativeGen\SelectParent.cs" />
