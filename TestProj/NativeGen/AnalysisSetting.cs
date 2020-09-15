@@ -16,6 +16,11 @@ namespace TestProj.NativeGen
         }
 
         /// <summary>
+        /// Количество прогонов
+        /// </summary>
+        public int RunAmount { get; set; }
+
+        /// <summary>
         /// Копирование значений объекта родительского класса 
         /// </summary>
         /// <param name="_algorithmSetting">Объект родительского класса</param>
@@ -28,16 +33,47 @@ namespace TestProj.NativeGen
             }
         }
 
-        /// <summary>
-        /// Количество прогонов
-        /// </summary>
-        public int RunAmount { get; set; }
+        public void SetAnalysisMethod()
+        {
+            switch (SelectMethod)
+            {
+                case SelectMethod.SelectParent:
+                    Type = typeof(SelectParent);
+                    break;
+                case SelectMethod.SelectCross:
+                    Type = typeof(SelectCross);
+                    break;
+                case SelectMethod.SelectMutate:
+                    Type = typeof(SelectMutate);
+                    break;
+                case SelectMethod.SelectSelection:
+                    Type = typeof(SelectSelection);
+                    break;
+            }
+        }
 
-        /// <summary>
-        /// Список методов, которые следует проанализировать
-        /// </summary>
-        public List<SelectSelection> SelectionList { get; set; }
+        private SelectMethod selectMethod;
 
+        public SelectMethod SelectMethod
+        {
+            get { return selectMethod; }
+            set
+            {
+                selectMethod = value;
+                SetAnalysisMethod();
+                ClearList();
+            }
+        }
+
+        public Type Type { get; set; }
+
+        public List<dynamic> List { get; set; }
+
+
+        private void ClearList()
+        {
+            List = new List<dynamic>();
+        }
 
     }
 }

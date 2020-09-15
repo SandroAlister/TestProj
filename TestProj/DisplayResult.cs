@@ -86,6 +86,16 @@ namespace TestProj
         }
 
         /// <summary>
+        /// Отображение строки поле:значение
+        /// </summary>
+        /// <param name="name">поле</param>
+        /// <param name="value">значение</param>
+        public void DisplayNameWithValue(string name, string value)
+        {
+            DisplayText($"{name}: {value}", true);
+        }
+
+        /// <summary>
         /// Отображение элементов популяции
         /// </summary>
         /// <param name="list">Популяция</param>

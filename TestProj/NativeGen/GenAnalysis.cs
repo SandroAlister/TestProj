@@ -17,7 +17,7 @@ namespace TestProj.NativeGen
             DisplayResult = new DisplayResult(memoEdit);
             AnalysisSetting = analysisSetting;
             AnalysisSetting.IsCompareMethods = true;
-            ResultDictionary = new Dictionary<SelectSelection, List<Candidate>>();
+            ResultDictionary = new Dictionary<dynamic, List<Candidate>>();
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace TestProj.NativeGen
         public AnalysisSetting AnalysisSetting { get; set; }
 
         //public List<Candidate> ResultCandidateList { get; set; }
-        public Dictionary<SelectSelection, List<Candidate>> ResultDictionary { get; set; }
+        public Dictionary<dynamic, List<Candidate>> ResultDictionary { get; set; }
 
         /// <summary>
         /// Получение средней особи для метода селекции
@@ -51,29 +51,38 @@ namespace TestProj.NativeGen
         /// </summary>
         public void Start()
         {
-            var initSelection = AnalysisSetting.SelectSelection;
+            DisplayResult.ClearText();
+
+            ResultDictionary = new Dictionary<dynamic, List<Candidate>>();
+
+            var propertyInfo = typeof(AnalysisSetting).GetProperty(AnalysisSetting.SelectMethod.ToString());
+            var propertyValue = propertyInfo.GetValue(AnalysisSetting);
 
             //Получение первой популяции
             List<Candidate> firstCandidateList = GenerateFirstPopulation();
 
-            foreach (var selectionMethod in AnalysisSetting.SelectionList)
+            foreach (var selectionMethod in AnalysisSetting.List)
             {
                 var resultCandidateList = new List<Candidate>();
 
-                AnalysisSetting.SelectSelection = selectionMethod;
+                propertyInfo.SetValue(AnalysisSetting, selectionMethod);
+                //DisplayResult.DisplayText();
 
                 for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
                 {
                     ClearPopulation();
+                    //DisplayResult.ClearText();
                     Population.AddRange(firstCandidateList);
                     Process();
+                    DisplayResult.DisplayText($"Прогон №{run}\tВремя расчета: {this.FinishTimeAlgorithm}\tЛучшее решение: {this.GetBestCandidate().DecValue}");
                     resultCandidateList.Add(GetBestCandidate());
                 }
 
+                DisplayResult.AddNewLine();
                 ResultDictionary.Add(selectionMethod, resultCandidateList);
             }
 
-            AnalysisSetting.SelectSelection = initSelection;
+            propertyInfo.SetValue(AnalysisSetting, propertyValue);
         }
 
     }

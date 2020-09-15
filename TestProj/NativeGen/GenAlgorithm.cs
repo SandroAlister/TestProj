@@ -76,7 +76,6 @@ namespace TestProj.NativeGen
         {
             try
             {
-                DisplayResult.ClearText();
                 DateTime startAlgorithm = DateTime.Now;
 
                 AllBestCandidates = new List<List<Candidate>>();
@@ -86,20 +85,22 @@ namespace TestProj.NativeGen
 
                 AllBestCandidates.Add(Population);
 
-                DisplayResult.DisplayPopulation("Начальная популяция", Population);
+                if(!AlgorithmSetting.IsCompareMethods)
+                    DisplayResult.DisplayPopulation("Начальная популяция", Population);
 
                 for (int generation = 1; generation <= AlgorithmSetting.GenerationSize; generation++)
                 {
                     DateTime startGeneration = DateTime.Now;
 
-                    DisplayResult.DisplayText($"Поколение №{generation}");
+                    if(!AlgorithmSetting.IsCompareMethods)
+                        DisplayResult.DisplayText($"Поколение №{generation}");
 
                     IntermediatePopulation = new List<Candidate>();
 
                     // Скрещивание и мутация
                     for (int parent1_ID = 0; parent1_ID < AlgorithmSetting.PopulationSize; parent1_ID++)
                     {
-                        if (AlgorithmSetting.IsDisplayCrossResult)
+                        if (!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayCrossResult)
                             DisplayResult.DisplayText($"Скрещивание {MathConvert.ConvertBinToString(Population[parent1_ID].Chromosome)}");
 
                         // Выбираем 2 Родителя
@@ -107,8 +108,12 @@ namespace TestProj.NativeGen
 
                         if (parent2_ID < 0)
                         {
-                            if (AlgorithmSetting.IsDisplayCrossResult)
+                            if (!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayCrossResult)
+                            {
                                 DisplayResult.DisplayText($"СКРЕЩИВАНИЕ НЕ УДАЛОСЬ!");
+                                DisplayResult.AddNewLine();
+                            }
+
                             continue;
                         }
 
@@ -118,34 +123,38 @@ namespace TestProj.NativeGen
                         Candidate childCandidate = new Candidate();
                         Chromosome child = Crossover(parent1, parent2);
 
-                        if(AlgorithmSetting.IsDisplayCrossResult)
+                        if(!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayCrossResult)
                         {
                             DisplayResult.DisplayText($"Родитель №1: {MathConvert.ConvertBinToString(parent1)}");
                             DisplayResult.DisplayText($"Родитель №2: {MathConvert.ConvertBinToString(parent2)}");
                             DisplayResult.DisplayText($"Потомок: {MathConvert.ConvertBinToString(child)}");
+                            DisplayResult.AddNewLine();
                         }
 
                         var mutationProbability = random.NextDouble();
 
-                        if (AlgorithmSetting.IsDisplayMutateResult)
+                        if (!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayMutateResult)
                         {
-                            DisplayResult.AddNewLine();
                             DisplayResult.DisplayText($"Вероятность мутации у потомка: {mutationProbability}");
                         }
 
                         if (mutationProbability <= AlgorithmSetting.MutationProbability)
                         {
                             Mutate(child);
-                            if(AlgorithmSetting.IsDisplayMutateResult)
+                            if(!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayMutateResult)
+                            {
                                 DisplayResult.DisplayText($"Мутировавший потомок: {MathConvert.ConvertBinToString(child)}");
+                                DisplayResult.AddNewLine();
+                            }
                         }
                         else
                         {
-                            if (AlgorithmSetting.IsDisplayMutateResult)
+                            if (!AlgorithmSetting.IsCompareMethods && AlgorithmSetting.IsDisplayMutateResult)
+                            {
                                 DisplayResult.DisplayText($"МУТАЦИЯ НЕ УДАЛАСЬ!");
+                                DisplayResult.AddNewLine();
+                            }
                         }
-
-                        DisplayResult.AddNewLine();
 
                         childCandidate.Chromosome = child;
                         childCandidate.DecValue = MathConvert.ConvertFromBinToDec(child, AlgorithmSetting.IsOnlyPositive);
@@ -157,13 +166,18 @@ namespace TestProj.NativeGen
                     //Селекция
                     Selection();
 
-                    DisplayResult.DisplayPopulation($"Итоговая популяция {generation} поколения", Population);
+                    if(!AlgorithmSetting.IsCompareMethods)
+                        DisplayResult.DisplayPopulation($"Итоговая популяция {generation} поколения", Population);
 
 
                     var finishGeneration = StopTimer(startGeneration);
 
-                    DisplayResult.DisplayText($"Время расчета {generation} поколения = {finishGeneration}");
-                    DisplayResult.SeparateText();
+                    if(!AlgorithmSetting.IsCompareMethods)
+                    {
+                        DisplayResult.DisplayText($"Время расчета {generation} поколения = {finishGeneration}");
+                        DisplayResult.SeparateText();
+                    }
+
                     AllBestCandidates.Add(Population);
                 }
 
@@ -516,10 +530,10 @@ namespace TestProj.NativeGen
         /// <returns>Потомок</returns>
         private Chromosome CrossingoverNPoint(Chromosome parent1, Chromosome parent2)
         {
-            var devidePointCount = AlgorithmSetting.CrossDevidePointCount;
+            var devidePointCount = AlgorithmSetting.DevidePointCount;
 
             //Если количество точек разделения оказывается больше, чем размер хромосом у родителей
-            if (AlgorithmSetting.CrossDevidePointCount > parent1.Count - 1 && AlgorithmSetting.CrossDevidePointCount > parent2.Count - 1)
+            if (AlgorithmSetting.DevidePointCount > parent1.Count - 1 && AlgorithmSetting.DevidePointCount > parent2.Count - 1)
             {
                 //Если хромосома 1 родителя оказывается больше хромосомы 2 родителя, 
                 //то переменная количества точек разделения становится равной размеру хромосомы 1 родителя
