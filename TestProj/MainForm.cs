@@ -16,6 +16,7 @@ using DevExpress.XtraCharts;
 using DevExpress.Utils;
 using DevExpress.XtraEditors.Repository;
 using DevExpress.XtraEditors.Controls;
+using DevExpress.XtraTab;
 
 namespace TestProj
 {
@@ -94,8 +95,8 @@ namespace TestProj
                 LoadSelectSelection();
 
                 //Загрузка значений списка целевых функций
-                cmboFunction.Properties.Items.AddRange(funcList);
-                cmboFunction.EditValue = cmboFunction.Properties.Items[0];
+                cmboCalcFunction.Properties.Items.AddRange(funcList);
+                cmboCalcFunction.EditValue = cmboCalcFunction.Properties.Items[0];
 
                 //Выставление параметров функции
                 FunctionStep = Convert.ToDouble(seFunctionStep.EditValue);
@@ -108,7 +109,7 @@ namespace TestProj
                 AlgorithmSetting.SelectionTreshold = Convert.ToDouble(seSelectionTreshold.EditValue);
                 AlgorithmSetting.MutationProbability = Convert.ToDouble(seMutationProbability.EditValue);
                 AlgorithmSetting.MutationGeneProbability = Convert.ToDouble(seMutationGeneProbability.EditValue);
-                AlgorithmSetting.CrossDevidePointCount = Convert.ToInt32(seDevidePointCount.EditValue);
+                AlgorithmSetting.DevidePointCount = Convert.ToInt32(seDevidePointCount.EditValue);
                 AlgorithmSetting.MutateGeneCount = Convert.ToInt32(seMutateGeneCount.EditValue);
                 AlgorithmSetting.GroupSize = Convert.ToInt32(seGroupSize.EditValue);
                 AlgorithmSetting.IsDuplicate = Convert.ToBoolean(ceIsDuplicate.EditValue);
@@ -125,16 +126,19 @@ namespace TestProj
                 ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
                 ceIsDisplaySelectionResult.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
 
-                rngPopulationTrack.Enabled = false;
+                
                 sbStart.Enabled = false;
 
                 ChangeRangeTrack();
+
+                // Блокировка вкладки "Анализ"
+                tabControl.TabPages[1].PageEnabled = false;
 
                 AnalysisSetting = new AnalysisSetting(AlgorithmSetting)
                 {
                     RunAmount = Convert.ToInt32(seRunAmount.EditValue)
                 };
-                LoadAnalysisSelection();
+                LoadSelectMethod();
             }
             catch (Exception ex)
             {
@@ -320,10 +324,16 @@ namespace TestProj
         /// <summary>
         /// Загрузка значений в выпадающий список анализируемых методов селекции
         /// </summary>
-        private void LoadAnalysisSelection()
+        private void LoadAnalysisGeneticOperator()
         {
+            lueAnalysisSelectionMethods.Properties.Items.Clear();
 
-            var enumList = Enum.GetValues(typeof(SelectSelection))
+            var type = AnalysisSetting.Type;
+
+            if (type == null)
+                return;
+
+            var enumList = Enum.GetValues(type)
             .Cast<Enum>()
             .Select(value => new
             {
@@ -338,9 +348,44 @@ namespace TestProj
                 lueAnalysisSelectionMethods.Properties.Items.Add(item.value, item.Description);
             }
 
-            AnalysisSetting.SelectionList = new List<SelectSelection>();
+            AnalysisSetting.List = new List<dynamic>();
         }
 
+        /// <summary>
+        /// Загрузка значений в выпадающий список анализируемых генетических операторов
+        /// </summary>
+        private void LoadSelectMethod()
+        {
+            var enumList = Enum.GetValues(typeof(SelectMethod))
+            .Cast<Enum>()
+            .Select(value => new
+            {
+                (Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute).Description,
+                value
+            })
+            .OrderBy(item => item.value)
+            .ToList();
+
+            lueAnalysisMethod.Properties.Columns.Add(new LookUpColumnInfo
+            {
+                FieldName = "value",
+
+                Caption = ""
+            });
+
+            lueAnalysisMethod.Properties.DisplayMember = "Description";
+            lueAnalysisMethod.Properties.ValueMember = "value";
+
+            lueAnalysisMethod.Properties.DataSource = enumList;
+
+            lueAnalysisMethod.EditValue = enumList[0].value;
+
+            lueAnalysisMethod.Properties.ShowHeader = false;
+            lueAnalysisMethod.Properties.ShowFooter = false;
+
+            AnalysisSetting.SelectMethod = (SelectMethod)enumList[0].value;
+        }
+        
         #endregion
 
         /// <summary>
@@ -377,8 +422,9 @@ namespace TestProj
 
                 ExtremumPoint = GetGlobalExtremumPoint(chFunction, 0);
                 DisplayExtremumPoint(ExtremumPoint, chFunction, 1);
-
+                AddAxisLabel(chFunction, "X", "Y");
                 sbStart.Enabled = true;
+                tabControl.TabPages[1].PageEnabled = true;
             }
             catch (Exception ex)
             {
@@ -391,7 +437,7 @@ namespace TestProj
             try
             {
                 GenAlgorithm = new GenAlgorithm(meOutPut, AlgorithmSetting);
-
+                meOutPut.Text = "";
                 GenAlgorithm.Process();
 
                 lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
@@ -520,6 +566,8 @@ namespace TestProj
         /// </summary>
         private void ChangeRangeTrack()
         {
+            rngPopulationTrack.Enabled = false;
+
             var oldMaxValue = rngPopulationTrack.Properties.Maximum;
 
             rngPopulationTrack.Properties.Maximum = AlgorithmSetting.GenerationSize;
@@ -641,7 +689,7 @@ namespace TestProj
         {
             try
             {
-                AlgorithmSetting.CrossDevidePointCount = Convert.ToInt32(seDevidePointCount.EditValue);
+                AlgorithmSetting.DevidePointCount = Convert.ToInt32(seDevidePointCount.EditValue);
             }
             catch (Exception ex)
             {
@@ -937,7 +985,12 @@ namespace TestProj
 
                 var values = checkedComboBoxEdit.EditValue.ToString();
 
-                AnalysisSetting.SelectionList = MathConvert.ConvertStringToSelection(values);
+                if (AnalysisSetting.Type == null)
+                    return;
+
+                AnalysisSetting.List = MathConvert.ConvertStringToEnumList(AnalysisSetting.Type, values);
+
+                //DisplaySetting();
             }
             catch (Exception ex)
             {
@@ -945,16 +998,48 @@ namespace TestProj
             }
         }
 
+        private void lueAnalysisMethod_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                var lookUpEdit = sender as LookUpEdit;
+
+                AnalysisSetting.SelectMethod = (SelectMethod)lookUpEdit.EditValue;
+                LoadAnalysisGeneticOperator();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void tabControl_SelectedPageChanged(object sender, TabPageChangedEventArgs e)
+        {
+            try
+            {
+                AnalysisSetting.RefreshValues(AlgorithmSetting);
+                var xtraTabControl = sender as XtraTabControl;
+
+                if (e.Page.Name == xtraTabControl.TabPages[1].Name)
+                    DisplaySetting();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
 
         #endregion
+
+        #region Методы аналитики
 
         private void sbAnalysis_Click(object sender, EventArgs e)
         {
             try
             {
-                if (AnalysisSetting.SelectionList.Count == 0)
+                if (AnalysisSetting.List.Count == 0)
                 {
-                    MessageBox.Show("Выберите пожалуйста методы селекции для сравнения!");
+                    MessageBox.Show("Выберите пожалуйста методы для сравнения!");
                     return;
                 }
 
@@ -968,8 +1053,6 @@ namespace TestProj
                 MessageBox.Show(ex.Message);
             }
         }
-
-        #region Методы аналитики
 
         /// <summary>
         /// Отображение результатов аналитики на графике
@@ -992,13 +1075,16 @@ namespace TestProj
                 foreach (var item in GenAnalysis.ResultDictionary)
                 {
                     //var name = item.Key as SelectSelection;
+                    var type = (item.Key).GetType();
 
-                    var strName = GetMethodName(item.Key);
+                    var strName = GetMethodName(item.Key, type);
 
                     var otherSeries = GetCandidateSeries(strName, item.Value);
 
                     chAnalysis.Series.Add(otherSeries);
                 }
+
+                AddAxisLabel(chAnalysis, "Прогон", "Наилучший ответ");
             }
             catch (Exception ex)
             {
@@ -1011,10 +1097,10 @@ namespace TestProj
         /// </summary>
         /// <param name="selectSelection">Метод селекции</param>
         /// <returns>Локализованное название метода селекции</returns>
-        private string GetMethodName(object selectSelection)
+        private string GetMethodName(object _selectSelection, Type _type)
         {
             // Получение списка всех элементов перечисления методов селекции
-            var enumList = Enum.GetValues(typeof(SelectSelection))
+            var enumList = Enum.GetValues(_type)
            .Cast<Enum>()
            .Select(value => new
            {
@@ -1024,7 +1110,7 @@ namespace TestProj
            .OrderBy(item => item.value)
            .ToList();
 
-            var selectItem = enumList.Find(g => g.value.ToString() == selectSelection.ToString());
+            var selectItem = enumList.Find(g => g.value.ToString() == _selectSelection.ToString());
             string methodName = selectItem.Description;
 
             return methodName;
@@ -1040,7 +1126,7 @@ namespace TestProj
         {
             Series series = new Series(_text, ViewType.Line);
 
-            for(int run = 1; run <= AnalysisSetting.RunAmount; run++)
+            for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
             {
                 series.Points.Add(new SeriesPoint(run, _candidateList[run - 1].DecValue));
             }
@@ -1048,70 +1134,120 @@ namespace TestProj
             return series;
         }
 
+        /// <summary>
+        /// Добавление осей для графика
+        /// </summary>
+        /// <param name="_chartControl">График</param>
+        /// <param name="_xAxisLabel">Ось Х</param>
+        /// <param name="_yAxisLabel">Ось У</param>
+        private void AddAxisLabel(ChartControl _chartControl, string _xAxisLabel, string _yAxisLabel)
+        {
+            XYDiagram diagram = (XYDiagram)_chartControl.Diagram;
+
+            diagram.AxisX.Title.Visible = true;
+            diagram.AxisX.Title.Alignment = StringAlignment.Center;
+            diagram.AxisX.Title.Text = _xAxisLabel;
+            diagram.AxisX.Title.TextColor = Color.Black;
+            diagram.AxisX.Title.Antialiasing = true;
+            diagram.AxisX.Title.Font = new Font("Tahoma", 14, FontStyle.Regular);
+
+            diagram.AxisY.Title.Visible = true;
+            diagram.AxisY.Title.Alignment = StringAlignment.Center;
+            diagram.AxisY.Title.Text = _yAxisLabel;
+            diagram.AxisY.Title.TextColor = Color.Black;
+            diagram.AxisY.Title.Antialiasing = true;
+            diagram.AxisY.Title.Font = new Font("Tahoma", 14, FontStyle.Regular);
+        }
+
+        /// <summary>
+        /// Отображение настроек генетического алгоритма
+        /// </summary>
+        private void DisplaySetting()
+        {
+            var displayResult = new DisplayResult(meDisplaySetting);
+
+            displayResult.ClearText();
+
+            foreach (var prop in AlgorithmSetting.GetType().GetProperties())
+            {
+                var layoutItem = lcSetting.Items.FindByName($"lci{prop.Name}");
+
+                if (layoutItem == null)
+                {
+                    continue;
+                }
+
+                var value = prop.GetValue(AlgorithmSetting);
+
+                displayResult.DisplayNameWithValue(layoutItem.Text, GetValueByType(value));
+            }
+        }
+
+        /// <summary>
+        /// Преобразование значения объекта в читаемый вид
+        /// </summary>
+        /// <param name="value">Объект</param>
+        /// <returns>Строкое значение</returns>
+        private string GetValueByType(object value)
+        {
+            var type = value.GetType();
+
+            if (type == typeof(bool))
+                return GetValueByBool((bool)value);
+
+            if (type == typeof(SelectParent))
+                return GetValueByEnum((SelectParent)value);
+
+            if (type == typeof(SelectCross))
+                return GetValueByEnum((SelectCross)value);
+
+            if (type == typeof(SelectMutate))
+                return GetValueByEnum((SelectMutate)value);
+
+            if (type == typeof(SelectSelection))
+                return GetValueByEnum((SelectSelection)value);
+
+            if (type == typeof(SelectTarget))
+                return GetValueByEnum((SelectTarget)value);
+
+            if (type.Name == "CalcFunction")
+            {
+                var name = this.cmboCalcFunction.EditValue.ToString();
+
+                return name;
+            }
+
+            return value.ToString();
+        }
+
+        /// <summary>
+        /// Преобразование значения логического типа в строковый
+        /// </summary>
+        /// <param name="_isTrue">Объект</param>
+        /// <returns>Строковое значение</returns>
+        private string GetValueByBool(bool _isTrue)
+        {
+            return _isTrue ? "Да" : "Нет";
+        }
+
+        /// <summary>
+        /// Преобразование знчения перечисления в строковый тип
+        /// </summary>
+        /// <param name="_selectEnumType">Перечисление</param>
+        /// <returns>Строковое значение</returns>
+        private string GetValueByEnum(object _selectEnumType)
+        {
+            return (Attribute.GetCustomAttribute(_selectEnumType.GetType().GetField(_selectEnumType.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute).Description;
+        }
+
         #endregion
+
+        
     }
 
     #region Function
 
-    public static class Function
-    {
-        public delegate double CalcFunction(double x);
-
-        /// <summary>
-        /// Выбор функции
-        /// </summary>
-        /// <param name="num"></param>
-        /// <returns></returns>
-        public static CalcFunction SetFunc(int num)
-        {
-            CalcFunction calcFunction;
-
-            switch (++num)
-            {
-                case 1:
-                    calcFunction = Func1;
-                    break;
-                case 2:
-                    calcFunction = Func2;
-                    break;
-                case 3:
-                    calcFunction = Func3;
-                    break;
-                case 4:
-                    calcFunction = Func4;
-                    break;
-                case 5:
-                    calcFunction = Func5;
-                    break;
-                default:
-                    return null;
-
-            }
-            return calcFunction;
-        }
-
-        static double Func1(double x)
-        {
-            return x;
-        }
-        static double Func2(double x)
-        {
-            return x * x;
-        }
-        static double Func3(double x)
-        {
-            return x + 2;
-        }
-        static double Func4(double x)
-        {
-            return x * x + 2 * x + 10;
-        }
-        static double Func5(double x)
-        {
-            double Y = 5 - (24 * x) + (17 * Math.Pow(x, 2)) - (Convert.ToDouble(11.0 / 3.0) * Math.Pow(x, 3)) + (0.25 * Math.Pow(x, 4));
-            return Y;
-        }
-    }
+    
 
     #endregion
 

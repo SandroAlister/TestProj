@@ -281,21 +281,52 @@ namespace TestProj.MathFeatures
             return strNumber;
         }
 
-        public static List<SelectSelection> ConvertStringToSelection(string str)
+        public static dynamic ConvertStringToEnumList(Type type, string str)
         {
             //Разделение входной строки на подстроки и удаление пробелов, запятых и пустых элементов
             var valueList = str.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            List<SelectSelection> selectionList = new List<SelectSelection>();
+            List<dynamic> selectionList = new List<dynamic>();
 
             foreach (var item in valueList)
             {
-                var selection = Enum.Parse(typeof(SelectSelection), item);
-                selectionList.Add((SelectSelection)selection);
+                var selection = Enum.Parse(type, item);
+                selectionList.Add(selection);
             }
 
             return selectionList;
         }
 
+        public static dynamic ConvertMFK<T>(Type type, string str)
+        {
+            //Разделение входной строки на подстроки и удаление пробелов, запятых и пустых элементов
+            var valueList = str.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            List<T> selectionList = new List<T>();
+
+            foreach (var item in valueList)
+            {
+                var selection = Enum.Parse(typeof(T), item);
+                selectionList.Add((T)selection);
+            }
+
+            List<dynamic> list = new List<dynamic>();
+            list.AddRange((dynamic)selectionList);
+
+            return list;
+        }
+
+        public static Type GetEnumType(string enumName)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var type = assembly.GetType(enumName);
+                if (type == null)
+                    continue;
+                if (type.IsEnum)
+                    return type;
+            }
+            return null;
+        }
     }
 }

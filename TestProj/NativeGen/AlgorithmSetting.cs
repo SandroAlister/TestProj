@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static TestProj.Function;
+//using static Function;
+//static TestProj.NativeGen.Function;
 
 namespace TestProj.NativeGen
 {
@@ -42,7 +43,7 @@ namespace TestProj.NativeGen
         /// <summary>
         /// Количество точек разделений для многототечного кроссинговера
         /// </summary>
-        public int CrossDevidePointCount { get; set; }
+        public int DevidePointCount { get; set; }
 
         /// <summary>
         /// Вероятность мутации
@@ -94,7 +95,7 @@ namespace TestProj.NativeGen
         /// <summary>
         /// Выбранная функция
         /// </summary>
-        public CalcFunction CalcFunction { get; set; }
+        public Function.CalcFunction CalcFunction { get; set; }
 
         /// <summary>
         /// Выбранная цель
@@ -133,7 +134,7 @@ namespace TestProj.NativeGen
                 PopulationSize = this.PopulationSize,
                 FunctionStartValue = this.GenerationSize,
                 FunctionFinishValue = this.FunctionFinishValue,
-                CrossDevidePointCount = this.CrossDevidePointCount,
+                DevidePointCount = this.DevidePointCount,
                 MutationProbability = this.MutationProbability,
                 MutateGeneCount = this.MutateGeneCount,
                 MutationGeneProbability = this.MutationGeneProbability,
