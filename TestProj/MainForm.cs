@@ -1085,6 +1085,11 @@ namespace TestProj
                 }
 
                 AddAxisLabel(chAnalysis, "Прогон", "Наилучший ответ");
+
+                var legend = chAnalysis.Legend;
+                legend.AlignmentHorizontal = LegendAlignmentHorizontal.Center;
+                legend.AlignmentVertical = LegendAlignmentVertical.BottomOutside;
+                legend.Direction = LegendDirection.LeftToRight;
             }
             catch (Exception ex)
             {

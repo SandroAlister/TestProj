@@ -125,6 +125,8 @@
             this.lciTabs = new DevExpress.XtraLayout.LayoutControlItem();
             this.calculateTimer = new System.Windows.Forms.Timer(this.components);
             this.defaultLookAndFeel1 = new DevExpress.LookAndFeel.DefaultLookAndFeel(this.components);
+            this.splitAnalysisSetting = new DevExpress.XtraLayout.SplitterItem();
+            this.splitAnalysisChart = new DevExpress.XtraLayout.SplitterItem();
             ((System.ComponentModel.ISupportInitialize)(this.lcMain)).BeginInit();
             this.lcMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tabControl)).BeginInit();
@@ -216,6 +218,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.esiSettingAnalysis)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisSetting)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisChart)).BeginInit();
             this.SuspendLayout();
             // 
             // lcMain
@@ -1144,7 +1148,7 @@
             this.meDisplaySetting.Location = new System.Drawing.Point(12, 100);
             this.meDisplaySetting.Name = "meDisplaySetting";
             this.meDisplaySetting.Properties.ReadOnly = true;
-            this.meDisplaySetting.Size = new System.Drawing.Size(364, 313);
+            this.meDisplaySetting.Size = new System.Drawing.Size(347, 313);
             this.meDisplaySetting.StyleController = this.lcAnalysis;
             this.meDisplaySetting.TabIndex = 10;
             // 
@@ -1154,7 +1158,7 @@
             this.lueAnalysisMethod.Name = "lueAnalysisMethod";
             this.lueAnalysisMethod.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
-            this.lueAnalysisMethod.Size = new System.Drawing.Size(245, 20);
+            this.lueAnalysisMethod.Size = new System.Drawing.Size(228, 20);
             this.lueAnalysisMethod.StyleController = this.lcAnalysis;
             this.lueAnalysisMethod.TabIndex = 9;
             this.lueAnalysisMethod.EditValueChanged += new System.EventHandler(this.lueAnalysisMethod_EditValueChanged);
@@ -1167,7 +1171,7 @@
             this.lueAnalysisSelectionMethods.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
             this.lueAnalysisSelectionMethods.Properties.SelectAllItemVisible = false;
-            this.lueAnalysisSelectionMethods.Size = new System.Drawing.Size(226, 20);
+            this.lueAnalysisSelectionMethods.Size = new System.Drawing.Size(209, 20);
             this.lueAnalysisSelectionMethods.StyleController = this.lcAnalysis;
             this.lueAnalysisSelectionMethods.TabIndex = 8;
             this.lueAnalysisSelectionMethods.EditValueChanged += new System.EventHandler(this.lueAnalysisSelectionMethods_EditValueChanged);
@@ -1176,7 +1180,7 @@
             // 
             this.sbAnalysis.Location = new System.Drawing.Point(12, 439);
             this.sbAnalysis.Name = "sbAnalysis";
-            this.sbAnalysis.Size = new System.Drawing.Size(364, 22);
+            this.sbAnalysis.Size = new System.Drawing.Size(347, 22);
             this.sbAnalysis.StyleController = this.lcAnalysis;
             this.sbAnalysis.TabIndex = 7;
             this.sbAnalysis.Text = "Анализ";
@@ -1203,27 +1207,27 @@
             0,
             0,
             0});
-            this.seRunAmount.Size = new System.Drawing.Size(249, 20);
+            this.seRunAmount.Size = new System.Drawing.Size(232, 20);
             this.seRunAmount.StyleController = this.lcAnalysis;
             this.seRunAmount.TabIndex = 6;
             this.seRunAmount.EditValueChanged += new System.EventHandler(this.seRunAmount_EditValueChanged);
             // 
             // meOutputAnalysis
             // 
-            this.meOutputAnalysis.Location = new System.Drawing.Point(380, 28);
+            this.meOutputAnalysis.Location = new System.Drawing.Point(373, 28);
             this.meOutputAnalysis.Name = "meOutputAnalysis";
-            this.meOutputAnalysis.Size = new System.Drawing.Size(401, 433);
+            this.meOutputAnalysis.Size = new System.Drawing.Size(389, 433);
             this.meOutputAnalysis.StyleController = this.lcAnalysis;
             this.meOutputAnalysis.TabIndex = 5;
             // 
             // chAnalysis
             // 
             this.chAnalysis.Legend.Name = "Default Legend";
-            this.chAnalysis.Location = new System.Drawing.Point(785, 12);
+            this.chAnalysis.Location = new System.Drawing.Point(776, 12);
             this.chAnalysis.Name = "chAnalysis";
             this.chAnalysis.PaletteName = "Marquee";
             this.chAnalysis.SeriesSerializable = new DevExpress.XtraCharts.Series[0];
-            this.chAnalysis.Size = new System.Drawing.Size(354, 449);
+            this.chAnalysis.Size = new System.Drawing.Size(363, 449);
             this.chAnalysis.TabIndex = 4;
             // 
             // lcgAnalysis
@@ -1238,7 +1242,9 @@
             this.lciAnalysisSelectionMethods,
             this.lciAnalysisMethod,
             this.lciDisplaySetting,
-            this.esiSettingAnalysis});
+            this.esiSettingAnalysis,
+            this.splitAnalysisSetting,
+            this.splitAnalysisChart});
             this.lcgAnalysis.Name = "lcgAnalysis";
             this.lcgAnalysis.Size = new System.Drawing.Size(1151, 473);
             this.lcgAnalysis.TextVisible = false;
@@ -1246,18 +1252,18 @@
             // lciAnalysisChart
             // 
             this.lciAnalysisChart.Control = this.chAnalysis;
-            this.lciAnalysisChart.Location = new System.Drawing.Point(773, 0);
+            this.lciAnalysisChart.Location = new System.Drawing.Point(764, 0);
             this.lciAnalysisChart.Name = "lciAnalysisChart";
-            this.lciAnalysisChart.Size = new System.Drawing.Size(358, 453);
+            this.lciAnalysisChart.Size = new System.Drawing.Size(367, 453);
             this.lciAnalysisChart.TextSize = new System.Drawing.Size(0, 0);
             this.lciAnalysisChart.TextVisible = false;
             // 
             // lciOutputAnalysis
             // 
             this.lciOutputAnalysis.Control = this.meOutputAnalysis;
-            this.lciOutputAnalysis.Location = new System.Drawing.Point(368, 0);
+            this.lciOutputAnalysis.Location = new System.Drawing.Point(361, 0);
             this.lciOutputAnalysis.Name = "lciOutputAnalysis";
-            this.lciOutputAnalysis.Size = new System.Drawing.Size(405, 453);
+            this.lciOutputAnalysis.Size = new System.Drawing.Size(393, 453);
             this.lciOutputAnalysis.Text = "Вывод результатов:";
             this.lciOutputAnalysis.TextLocation = DevExpress.Utils.Locations.Top;
             this.lciOutputAnalysis.TextSize = new System.Drawing.Size(135, 13);
@@ -1267,7 +1273,7 @@
             this.lciRunAmount.Control = this.seRunAmount;
             this.lciRunAmount.Location = new System.Drawing.Point(0, 0);
             this.lciRunAmount.Name = "lciRunAmount";
-            this.lciRunAmount.Size = new System.Drawing.Size(368, 24);
+            this.lciRunAmount.Size = new System.Drawing.Size(351, 24);
             this.lciRunAmount.Text = "Количество прогонов";
             this.lciRunAmount.TextAlignMode = DevExpress.XtraLayout.TextAlignModeItem.AutoSize;
             this.lciRunAmount.TextSize = new System.Drawing.Size(110, 13);
@@ -1278,7 +1284,7 @@
             this.lciAnalysis.Control = this.sbAnalysis;
             this.lciAnalysis.Location = new System.Drawing.Point(0, 427);
             this.lciAnalysis.Name = "lciAnalysis";
-            this.lciAnalysis.Size = new System.Drawing.Size(368, 26);
+            this.lciAnalysis.Size = new System.Drawing.Size(351, 26);
             this.lciAnalysis.TextSize = new System.Drawing.Size(0, 0);
             this.lciAnalysis.TextVisible = false;
             // 
@@ -1287,7 +1293,7 @@
             this.lciAnalysisSelectionMethods.Control = this.lueAnalysisSelectionMethods;
             this.lciAnalysisSelectionMethods.Location = new System.Drawing.Point(0, 48);
             this.lciAnalysisSelectionMethods.Name = "lciAnalysisSelectionMethods";
-            this.lciAnalysisSelectionMethods.Size = new System.Drawing.Size(368, 24);
+            this.lciAnalysisSelectionMethods.Size = new System.Drawing.Size(351, 24);
             this.lciAnalysisSelectionMethods.Text = "Анализируемые стратегии";
             this.lciAnalysisSelectionMethods.TextSize = new System.Drawing.Size(135, 13);
             // 
@@ -1296,7 +1302,7 @@
             this.lciAnalysisMethod.Control = this.lueAnalysisMethod;
             this.lciAnalysisMethod.Location = new System.Drawing.Point(0, 24);
             this.lciAnalysisMethod.Name = "lciAnalysisMethod";
-            this.lciAnalysisMethod.Size = new System.Drawing.Size(368, 24);
+            this.lciAnalysisMethod.Size = new System.Drawing.Size(351, 24);
             this.lciAnalysisMethod.Text = "Анализируемый метод";
             this.lciAnalysisMethod.TextAlignMode = DevExpress.XtraLayout.TextAlignModeItem.AutoSize;
             this.lciAnalysisMethod.TextSize = new System.Drawing.Size(114, 13);
@@ -1307,7 +1313,7 @@
             this.lciDisplaySetting.Control = this.meDisplaySetting;
             this.lciDisplaySetting.Location = new System.Drawing.Point(0, 72);
             this.lciDisplaySetting.Name = "lciDisplaySetting";
-            this.lciDisplaySetting.Size = new System.Drawing.Size(368, 333);
+            this.lciDisplaySetting.Size = new System.Drawing.Size(351, 333);
             this.lciDisplaySetting.Text = "Настройки алгоритма";
             this.lciDisplaySetting.TextLocation = DevExpress.Utils.Locations.Top;
             this.lciDisplaySetting.TextSize = new System.Drawing.Size(135, 13);
@@ -1317,7 +1323,7 @@
             this.esiSettingAnalysis.AllowHotTrack = false;
             this.esiSettingAnalysis.Location = new System.Drawing.Point(0, 405);
             this.esiSettingAnalysis.Name = "esiSettingAnalysis";
-            this.esiSettingAnalysis.Size = new System.Drawing.Size(368, 22);
+            this.esiSettingAnalysis.Size = new System.Drawing.Size(351, 22);
             this.esiSettingAnalysis.TextSize = new System.Drawing.Size(0, 0);
             // 
             // lcgMain
@@ -1342,6 +1348,20 @@
             // defaultLookAndFeel1
             // 
             this.defaultLookAndFeel1.LookAndFeel.SkinName = "The Bezier";
+            // 
+            // splitAnalysisSetting
+            // 
+            this.splitAnalysisSetting.AllowHotTrack = true;
+            this.splitAnalysisSetting.Location = new System.Drawing.Point(351, 0);
+            this.splitAnalysisSetting.Name = "splitAnalysisSetting";
+            this.splitAnalysisSetting.Size = new System.Drawing.Size(10, 453);
+            // 
+            // splitAnalysisChart
+            // 
+            this.splitAnalysisChart.AllowHotTrack = true;
+            this.splitAnalysisChart.Location = new System.Drawing.Point(754, 0);
+            this.splitAnalysisChart.Name = "splitAnalysisChart";
+            this.splitAnalysisChart.Size = new System.Drawing.Size(10, 453);
             // 
             // MainForm
             // 
@@ -1445,6 +1465,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.esiSettingAnalysis)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisSetting)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisChart)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -1536,6 +1558,8 @@
         private DevExpress.XtraLayout.LayoutControlItem lciAnalysisMethod;
         private DevExpress.XtraEditors.MemoEdit meDisplaySetting;
         private DevExpress.XtraLayout.LayoutControlItem lciDisplaySetting;
+        private DevExpress.XtraLayout.SplitterItem splitAnalysisSetting;
+        private DevExpress.XtraLayout.SplitterItem splitAnalysisChart;
     }
 }
 
