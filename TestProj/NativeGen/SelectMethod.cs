@@ -13,7 +13,7 @@ namespace TestProj.NativeGen
         [Description("мутации особи потомка")]
         SelectMutate,
 
-        [Description("селекции")]
+        [Description("отбора особей в следующее поколение")]
         SelectSelection
     }
 }

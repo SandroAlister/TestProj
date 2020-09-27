@@ -121,12 +121,14 @@
             this.lciAnalysisMethod = new DevExpress.XtraLayout.LayoutControlItem();
             this.lciDisplaySetting = new DevExpress.XtraLayout.LayoutControlItem();
             this.esiSettingAnalysis = new DevExpress.XtraLayout.EmptySpaceItem();
+            this.splitAnalysisSetting = new DevExpress.XtraLayout.SplitterItem();
+            this.splitAnalysisChart = new DevExpress.XtraLayout.SplitterItem();
             this.lcgMain = new DevExpress.XtraLayout.LayoutControlGroup();
             this.lciTabs = new DevExpress.XtraLayout.LayoutControlItem();
             this.calculateTimer = new System.Windows.Forms.Timer(this.components);
             this.defaultLookAndFeel1 = new DevExpress.LookAndFeel.DefaultLookAndFeel(this.components);
-            this.splitAnalysisSetting = new DevExpress.XtraLayout.SplitterItem();
-            this.splitAnalysisChart = new DevExpress.XtraLayout.SplitterItem();
+            this.seAccuracy = new DevExpress.XtraEditors.SpinEdit();
+            this.lciAccuracy = new DevExpress.XtraLayout.LayoutControlItem();
             ((System.ComponentModel.ISupportInitialize)(this.lcMain)).BeginInit();
             this.lcMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.tabControl)).BeginInit();
@@ -216,10 +218,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.lciAnalysisMethod)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.lciDisplaySetting)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.esiSettingAnalysis)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisSetting)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisChart)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.seAccuracy.Properties)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lciAccuracy)).BeginInit();
             this.SuspendLayout();
             // 
             // lcMain
@@ -255,6 +259,7 @@
             // 
             // lcSetting
             // 
+            this.lcSetting.Controls.Add(this.seAccuracy);
             this.lcSetting.Controls.Add(this.meOutPut);
             this.lcSetting.Controls.Add(this.lcCalcTimer);
             this.lcSetting.Controls.Add(this.rngPopulationTrack);
@@ -594,7 +599,7 @@
             0,
             0,
             65536});
-            this.seSelectionTreshold.Location = new System.Drawing.Point(463, 324);
+            this.seSelectionTreshold.Location = new System.Drawing.Point(452, 324);
             this.seSelectionTreshold.Name = "seSelectionTreshold";
             this.seSelectionTreshold.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
             new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
@@ -613,7 +618,7 @@
             0,
             0,
             65536});
-            this.seSelectionTreshold.Size = new System.Drawing.Size(278, 20);
+            this.seSelectionTreshold.Size = new System.Drawing.Size(289, 20);
             this.seSelectionTreshold.StyleController = this.lcSetting;
             this.seSelectionTreshold.TabIndex = 23;
             this.seSelectionTreshold.EditValueChanged += new System.EventHandler(this.seSelectionTreshold_EditValueChanged);
@@ -801,7 +806,8 @@
             this.esiFunction,
             this.splitFunctionSetting,
             this.lciCalcFunction,
-            this.lciFunctionFinishValue});
+            this.lciFunctionFinishValue,
+            this.lciAccuracy});
             this.lcgSetting.Name = "lcgSetting";
             this.lcgSetting.Size = new System.Drawing.Size(1151, 473);
             this.lcgSetting.TextVisible = false;
@@ -834,9 +840,9 @@
             this.lciSelectionTreshold.Location = new System.Drawing.Point(366, 312);
             this.lciSelectionTreshold.Name = "lciSelectionTreshold";
             this.lciSelectionTreshold.Size = new System.Drawing.Size(367, 24);
-            this.lciSelectionTreshold.Text = "Порог селекции";
+            this.lciSelectionTreshold.Text = "Порог отбора";
             this.lciSelectionTreshold.TextAlignMode = DevExpress.XtraLayout.TextAlignModeItem.AutoSize;
-            this.lciSelectionTreshold.TextSize = new System.Drawing.Size(80, 13);
+            this.lciSelectionTreshold.TextSize = new System.Drawing.Size(69, 13);
             this.lciSelectionTreshold.TextToControlDistance = 5;
             // 
             // lciGroupSize
@@ -1085,9 +1091,9 @@
             // esiFunction
             // 
             this.esiFunction.AllowHotTrack = false;
-            this.esiFunction.Location = new System.Drawing.Point(0, 388);
+            this.esiFunction.Location = new System.Drawing.Point(0, 412);
             this.esiFunction.Name = "esiFunction";
-            this.esiFunction.Size = new System.Drawing.Size(356, 39);
+            this.esiFunction.Size = new System.Drawing.Size(356, 15);
             this.esiFunction.TextSize = new System.Drawing.Size(0, 0);
             // 
             // splitFunctionSetting
@@ -1326,6 +1332,20 @@
             this.esiSettingAnalysis.Size = new System.Drawing.Size(351, 22);
             this.esiSettingAnalysis.TextSize = new System.Drawing.Size(0, 0);
             // 
+            // splitAnalysisSetting
+            // 
+            this.splitAnalysisSetting.AllowHotTrack = true;
+            this.splitAnalysisSetting.Location = new System.Drawing.Point(351, 0);
+            this.splitAnalysisSetting.Name = "splitAnalysisSetting";
+            this.splitAnalysisSetting.Size = new System.Drawing.Size(10, 453);
+            // 
+            // splitAnalysisChart
+            // 
+            this.splitAnalysisChart.AllowHotTrack = true;
+            this.splitAnalysisChart.Location = new System.Drawing.Point(754, 0);
+            this.splitAnalysisChart.Name = "splitAnalysisChart";
+            this.splitAnalysisChart.Size = new System.Drawing.Size(10, 453);
+            // 
             // lcgMain
             // 
             this.lcgMain.EnableIndentsWithoutBorders = DevExpress.Utils.DefaultBoolean.True;
@@ -1349,19 +1369,37 @@
             // 
             this.defaultLookAndFeel1.LookAndFeel.SkinName = "The Bezier";
             // 
-            // splitAnalysisSetting
+            // seAccuracy
             // 
-            this.splitAnalysisSetting.AllowHotTrack = true;
-            this.splitAnalysisSetting.Location = new System.Drawing.Point(351, 0);
-            this.splitAnalysisSetting.Name = "splitAnalysisSetting";
-            this.splitAnalysisSetting.Size = new System.Drawing.Size(10, 453);
+            this.seAccuracy.EditValue = new decimal(new int[] {
+            0,
+            0,
+            0,
+            0});
+            this.seAccuracy.Location = new System.Drawing.Point(111, 400);
+            this.seAccuracy.Name = "seAccuracy";
+            this.seAccuracy.Properties.Buttons.AddRange(new DevExpress.XtraEditors.Controls.EditorButton[] {
+            new DevExpress.XtraEditors.Controls.EditorButton(DevExpress.XtraEditors.Controls.ButtonPredefines.Combo)});
+            this.seAccuracy.Properties.MaxValue = new decimal(new int[] {
+            15,
+            0,
+            0,
+            0});
+            this.seAccuracy.Size = new System.Drawing.Size(253, 20);
+            this.seAccuracy.StyleController = this.lcSetting;
+            this.seAccuracy.TabIndex = 38;
+            this.seAccuracy.EditValueChanged += new System.EventHandler(this.seAccuracy_EditValueChanged);
             // 
-            // splitAnalysisChart
+            // lciAccuracy
             // 
-            this.splitAnalysisChart.AllowHotTrack = true;
-            this.splitAnalysisChart.Location = new System.Drawing.Point(754, 0);
-            this.splitAnalysisChart.Name = "splitAnalysisChart";
-            this.splitAnalysisChart.Size = new System.Drawing.Size(10, 453);
+            this.lciAccuracy.Control = this.seAccuracy;
+            this.lciAccuracy.Location = new System.Drawing.Point(0, 388);
+            this.lciAccuracy.Name = "lciAccuracy";
+            this.lciAccuracy.Size = new System.Drawing.Size(356, 24);
+            this.lciAccuracy.Text = "Точность решения";
+            this.lciAccuracy.TextAlignMode = DevExpress.XtraLayout.TextAlignModeItem.AutoSize;
+            this.lciAccuracy.TextSize = new System.Drawing.Size(94, 13);
+            this.lciAccuracy.TextToControlDistance = 5;
             // 
             // MainForm
             // 
@@ -1463,10 +1501,12 @@
             ((System.ComponentModel.ISupportInitialize)(this.lciAnalysisMethod)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.lciDisplaySetting)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.esiSettingAnalysis)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisSetting)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitAnalysisChart)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lcgMain)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lciTabs)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.seAccuracy.Properties)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.lciAccuracy)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -1560,6 +1600,8 @@
         private DevExpress.XtraLayout.LayoutControlItem lciDisplaySetting;
         private DevExpress.XtraLayout.SplitterItem splitAnalysisSetting;
         private DevExpress.XtraLayout.SplitterItem splitAnalysisChart;
+        private DevExpress.XtraEditors.SpinEdit seAccuracy;
+        private DevExpress.XtraLayout.LayoutControlItem lciAccuracy;
     }
 }
 

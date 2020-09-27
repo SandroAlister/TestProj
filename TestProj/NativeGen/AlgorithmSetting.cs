@@ -117,6 +117,26 @@ namespace TestProj.NativeGen
         public SelectSelection SelectSelection { get; set; }
 
         /// <summary>
+        /// Точность решения
+        /// </summary>
+        public int Accuracy { get; set; }
+
+        /// <summary>
+        /// Значение лучшего решения
+        /// </summary>
+        public double BestFitess { get; set; }
+
+        /// <summary>
+        /// Аргумент лучшего решения 
+        /// </summary>
+        public double BestSolution { get; set; }
+
+        /// <summary>
+        /// Теоретическое лучшее решение
+        /// </summary>
+        //public ExtSolution ExtSolution { get; set; }
+
+        /// <summary>
         /// Копирование объекта
         /// </summary>
         /// <returns></returns>
@@ -147,5 +167,18 @@ namespace TestProj.NativeGen
                 SelectSelection = this.SelectSelection
             };
         }
+    }
+
+    public class ExtSolution
+    {
+        public int DecValue { get; set; }
+        public double Fitness { get; set; }
+        public ExtSolution(int decValue, double fitness)
+        {
+            DecValue = decValue;
+            Fitness = fitness;
+        }
+        public ExtSolution()
+        { }
     }
 }

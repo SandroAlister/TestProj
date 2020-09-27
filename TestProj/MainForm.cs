@@ -102,6 +102,7 @@ namespace TestProj
                 FunctionStep = Convert.ToDouble(seFunctionStep.EditValue);
                 AlgorithmSetting.FunctionStartValue = Convert.ToInt32(seFunctionStartValue.EditValue);
                 AlgorithmSetting.FunctionFinishValue = Convert.ToInt32(seFunctionFinishValue.EditValue);
+                AlgorithmSetting.Accuracy = Convert.ToInt32(seAccuracy.EditValue);
 
                 //Выставление настроек ГА
                 AlgorithmSetting.GenerationSize = Convert.ToInt32(seGenerationSize.EditValue);
@@ -126,10 +127,9 @@ namespace TestProj
                 ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
                 ceIsDisplaySelectionResult.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
 
-
                 sbStart.Enabled = false;
 
-                ChangeRangeTrack();
+                ChangeRangeTrack(AlgorithmSetting.GenerationSize);
 
                 // Блокировка вкладки "Анализ"
                 tabControl.TabPages[1].PageEnabled = false;
@@ -424,6 +424,10 @@ namespace TestProj
                 }
 
                 ExtremumPoint = GetGlobalExtremumPoint(chFunction, 0);
+
+                AlgorithmSetting.BestSolution = Convert.ToDouble(ExtremumPoint.Argument);
+                AlgorithmSetting.BestFitess = ExtremumPoint.Values[0];
+
                 DisplayExtremumPoint(ExtremumPoint, chFunction, 1);
                 AddAxisLabel(chFunction, "X", "Y");
                 sbStart.Enabled = true;
@@ -445,10 +449,14 @@ namespace TestProj
 
                 lcCalcTimer.Text = $"Время расчета {GenAlgorithm.FinishTimeAlgorithm}";
 
+                PopulationTrack = GenAlgorithm.NumberOfLastGeneneration;
+                ChangeRangeTrack(PopulationTrack);
+
                 rngPopulationTrack.Enabled = true;
                 rngPopulationTrack.Value = rngPopulationTrack.Properties.Maximum;
+
                 ConvertCandidateToSeries(chFunction, 2, GenAlgorithm.AllBestCandidates[PopulationTrack]);
-                MessageBox.Show($"Наилучшее решение:{GenAlgorithm.GetBestCandidate().DecValue}");
+                MessageBox.Show($"Наилучшее решение:{GenAlgorithm.GetBestCandidate().DecValue} было найдено за {GenAlgorithm.NumberOfLastGeneneration} поколений");
                 GenAlgorithm.GetBestCandidate();
 
             }
@@ -567,18 +575,18 @@ namespace TestProj
         /// <summary>
         /// Изменение количества делений для trackBar'а
         /// </summary>
-        private void ChangeRangeTrack()
+        private void ChangeRangeTrack(int maxValue)
         {
             rngPopulationTrack.Enabled = false;
 
             var oldMaxValue = rngPopulationTrack.Properties.Maximum;
 
-            rngPopulationTrack.Properties.Maximum = AlgorithmSetting.GenerationSize;
+            rngPopulationTrack.Properties.Maximum = maxValue;
 
-            if (oldMaxValue == AlgorithmSetting.GenerationSize)
+            if (oldMaxValue == maxValue)
                 return;
 
-            if (oldMaxValue < AlgorithmSetting.GenerationSize)
+            if (oldMaxValue < maxValue)
                 AddRangeLabel();
             else
                 RemoveRangeLabel();
@@ -681,6 +689,18 @@ namespace TestProj
             try
             {
                 AlgorithmSetting.FunctionFinishValue = Convert.ToInt32(seFunctionFinishValue.EditValue);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void seAccuracy_EditValueChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                AlgorithmSetting.Accuracy = Convert.ToInt32(seAccuracy.EditValue);
             }
             catch (Exception ex)
             {
@@ -851,7 +871,7 @@ namespace TestProj
             {
                 AlgorithmSetting.GenerationSize = Convert.ToInt32(seGenerationSize.EditValue);
 
-                ChangeRangeTrack();
+                ChangeRangeTrack(AlgorithmSetting.GenerationSize);
             }
             catch (Exception ex)
             {
@@ -1294,5 +1314,6 @@ namespace TestProj
 
         #endregion
 
+        
     }
 }
