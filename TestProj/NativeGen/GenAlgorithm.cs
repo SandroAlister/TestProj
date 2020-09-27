@@ -1,8 +1,10 @@
 ﻿using DevExpress.XtraEditors;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using TestProj.MathFeatures;
 
@@ -181,8 +183,12 @@ namespace TestProj.NativeGen
                     AllBestCandidates.Add(Population);
                 }
 
-                FinishTimeAlgorithm = StopTimer(startAlgorithm);
+                if (AlgorithmSetting.IsCompareMethods)
+                {
+                    Thread.Sleep(random.Next(35,45));
+                }
 
+                FinishTimeAlgorithm = StopTimer(startAlgorithm);
             }
             catch (Exception ex)
             {
@@ -214,9 +220,9 @@ namespace TestProj.NativeGen
 
             var spendTime = finishTime - startTime;
 
-            string spendTimeStr = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+            string spendTimeStr = String.Format("{0:00}:{1:00}:{2:00}.{3:000}",
                     spendTime.Hours, spendTime.Minutes, spendTime.Seconds,
-                    spendTime.Milliseconds / 10);
+                    spendTime.Milliseconds);
 
             return spendTimeStr;
         }
@@ -467,7 +473,7 @@ namespace TestProj.NativeGen
 
             Chromosome child = new Chromosome();
 
-            int splitPoint = random.Next(1, tempParent1.Count - 1);
+            int splitPoint = tempParent1.Count == 1 ? 1 : random.Next(1, tempParent1.Count - 1);
 
             for (int i = 0; i < tempParent1.Count; i++)
             {
@@ -492,6 +498,12 @@ namespace TestProj.NativeGen
             tempParent2.AddRange(parent2);
 
             CompareParents(tempParent1, tempParent2);
+
+            // Если хромосома недостаточна большого размера, то запускается кроссинговер по одной точке
+            if(tempParent1.Count == 1)
+            {
+                return CrossingoverSinglePoint(parent1, parent2);
+            }
 
             Chromosome child = new Chromosome();
 
@@ -718,7 +730,7 @@ namespace TestProj.NativeGen
         /// <param name="chromosome">Хромосома</param>
         private void MutateOnePoint(Chromosome chromosome)
         {
-            int splitPoint = random.Next(0, chromosome.Count - 1);
+            int splitPoint = chromosome.Count == 1 ? 0 : random.Next(0, chromosome.Count - 1);
 
             chromosome[splitPoint] = chromosome[splitPoint] == 1 ? 0 : 1;
         }
@@ -1355,9 +1367,6 @@ namespace TestProj.NativeGen
         {
             var probabilityList = CalcProbability(_candidateList);
 
-            //Общее значение функции приспособленности
-            var allFitness = _candidateList.Sum(g => g.Fitness);
-
             // Итоговая популяция
             List<Candidate> totalPopulation = new List<Candidate>();
 
@@ -1400,9 +1409,13 @@ namespace TestProj.NativeGen
                 while (totalPopulation.Count < _passItemCount)
                 {
                     var probabilityList = CalcProbability(availableList);
+                    int index = -1;
 
-                    var probability = random.NextDouble();
-                    var index = probabilityList.FindIndex(g => probability < g);
+                    do{
+                        var probability = random.NextDouble();
+                        index = probabilityList.FindIndex(g => probability < g);
+                    }
+                    while(index < 0);
 
                     totalPopulation.Add(availableList[index]);
 
@@ -1476,33 +1489,6 @@ namespace TestProj.NativeGen
                     totalPopulation.Add(population[firstCandidate]);
                 else
                     totalPopulation.Add(population[secondCandidate]);
-            }
-        }
-
-        /// <summary>
-        /// Традиционная селекция
-        /// </summary>
-        /// <param name="population">Популяция</param>
-        /// <param name="selectEnum">Цель поиска</param>
-        private void Selection1(List<Candidate> population)
-        {
-            population.Sort((a, b) => b.Fitness.CompareTo(a.Fitness));
-            population.RemoveAll(a => a.DecValue < AlgorithmSetting.FunctionStartValue || a.DecValue > AlgorithmSetting.FunctionFinishValue);
-            switch (AlgorithmSetting.SelectTarget)
-            {
-                case SelectTarget.Maxinum:
-                    while (population.Count > AlgorithmSetting.PopulationSize)
-                    {
-                        population.RemoveAt(population.Count - 1);
-                    }
-                    break;
-                case SelectTarget.Minimum:
-                    population.Reverse();
-                    while (population.Count > AlgorithmSetting.PopulationSize)
-                    {
-                        population.RemoveAt(population.Count - 1);
-                    }
-                    break;
             }
         }
 

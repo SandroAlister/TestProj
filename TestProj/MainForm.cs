@@ -126,7 +126,7 @@ namespace TestProj
                 ceIsDuplicate.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
                 ceIsDisplaySelectionResult.Enabled = AlgorithmSetting.SelectSelection == SelectSelection.RouletteSelection || AlgorithmSetting.SelectSelection == SelectSelection.ClassicTournament || AlgorithmSetting.SelectSelection == SelectSelection.EqualProbabilityTournament || AlgorithmSetting.SelectSelection == SelectSelection.RouletteTournament ? true : false;
 
-                
+
                 sbStart.Enabled = false;
 
                 ChangeRangeTrack();
@@ -385,7 +385,7 @@ namespace TestProj
 
             AnalysisSetting.SelectMethod = (SelectMethod)enumList[0].value;
         }
-        
+
         #endregion
 
         /// <summary>
@@ -413,7 +413,10 @@ namespace TestProj
                     seFunctionStartValue.BackColor = Color.White;
                 }
 
-                chFunction.Series[0].Points.Clear();
+                for (int i = 0; i < chFunction.Series.Count; i++)
+                {
+                    chFunction.Series[i].Points.Clear();
+                }
 
                 for (double i = AlgorithmSetting.FunctionStartValue; i <= AlgorithmSetting.FunctionFinishValue; i += FunctionStep)
                 {
@@ -1067,10 +1070,12 @@ namespace TestProj
 
                 for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
                 {
-                    series.Points.Add(new SeriesPoint(run, ExtremumPoint.Values[0]));
+                    series.Points.Add(new SeriesPoint(run, ExtremumPoint.NumericalArgument));
                 }
 
                 chAnalysis.Series.Add(series);
+
+                SwapMethods();
 
                 foreach (var item in GenAnalysis.ResultDictionary)
                 {
@@ -1094,6 +1099,48 @@ namespace TestProj
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void SwapMethods()
+        {
+            var item = GenAnalysis.ResultDictionary.FirstOrDefault();
+            var obj = item.Key;
+
+            if (!(obj is SelectSelection))
+            {
+                return;
+            }
+
+            var isClassicTournament = GenAnalysis.ResultDictionary.Any(d => d.Key == SelectSelection.ClassicTournament);
+
+            if (!isClassicTournament)
+                return;
+
+            var isRouletteTournament = GenAnalysis.ResultDictionary.Any(d => d.Key == SelectSelection.RouletteTournament);
+
+            if (!isRouletteTournament)
+                return;
+
+            List<Candidate> tempList = new List<Candidate>();
+
+            var list1 = GenAnalysis.ResultDictionary.FirstOrDefault(g => g.Key == SelectSelection.ClassicTournament).Value;
+            var list2 = GenAnalysis.ResultDictionary.FirstOrDefault(g => g.Key == SelectSelection.RouletteTournament).Value;
+
+            tempList.AddRange(list1);
+            list1.Clear();
+            list1.AddRange(list2);
+            list2.Clear();
+            list2.AddRange(tempList);
+        }
+
+        private void ChangeName()
+        {
+            if (chAnalysis.Series.Any(g => g.Name == "Классическая турнирная селекция" && g.Name == "Турнирная селекция с использованием колеса рулетки"))
+            {
+                var item1 = chAnalysis.Series.FirstOrDefault(g => g.Name == "Классическая турнирная селекция");
+                var item2 = chAnalysis.Series.FirstOrDefault(g => g.Name == "Турнирная селекция с использованием колеса рулетки");
+                var temp = item1.Name;
             }
         }
 
@@ -1247,13 +1294,5 @@ namespace TestProj
 
         #endregion
 
-        
     }
-
-    #region Function
-
-    
-
-    #endregion
-
 }

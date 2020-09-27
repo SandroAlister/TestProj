@@ -1,6 +1,7 @@
 ﻿using DevExpress.XtraEditors;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace TestProj.NativeGen
             AnalysisSetting = analysisSetting;
             AnalysisSetting.IsCompareMethods = true;
             ResultDictionary = new Dictionary<dynamic, List<Candidate>>();
+            TimeList = new List<string>();
         }
 
         /// <summary>
@@ -27,6 +29,8 @@ namespace TestProj.NativeGen
 
         //public List<Candidate> ResultCandidateList { get; set; }
         public Dictionary<dynamic, List<Candidate>> ResultDictionary { get; set; }
+
+        private List<string> TimeList { get; set; }
 
         /// <summary>
         /// Получение средней особи для метода селекции
@@ -38,10 +42,21 @@ namespace TestProj.NativeGen
             var avgDecValue = Convert.ToInt32(candidateList.Average(c => c.DecValue));
 
             avgBestCandidate.DecValue = avgDecValue;
-            avgBestCandidate.Chromosome = (Chromosome)MathConvert.ConvertFromDecToBin(avgDecValue, AlgorithmSetting.IsOnlyPositive);
+            avgBestCandidate.Chromosome = new Chromosome(MathConvert.ConvertFromDecToBin(avgDecValue, AlgorithmSetting.IsOnlyPositive));
             avgBestCandidate.Fitness = AlgorithmSetting.CalcFunction(Convert.ToDouble(avgDecValue));
 
             return avgBestCandidate;
+        }
+
+        public string GetAvgFinishTime(List<string> timeList)
+        {
+            var t = timeList.Average(x => TimeSpan.Parse(x).Ticks);
+            var ticks = Convert.ToInt64(t);
+
+            var average = new TimeSpan(ticks);
+            var averageStr = average.ToString(@"hh\:mm\:ss\.fff");
+
+            return averageStr;
         }
 
         public Candidate AvgBestCandidate { get; set; }
@@ -65,6 +80,8 @@ namespace TestProj.NativeGen
             {
                 var resultCandidateList = new List<Candidate>();
 
+                DisplayResult.DisplayText($"{GetMethodName(selectionMethod, selectionMethod.GetType())}");
+
                 propertyInfo.SetValue(AnalysisSetting, selectionMethod);
                 //DisplayResult.DisplayText();
 
@@ -74,15 +91,45 @@ namespace TestProj.NativeGen
                     //DisplayResult.ClearText();
                     Population.AddRange(firstCandidateList);
                     Process();
-                    DisplayResult.DisplayText($"Прогон №{run}\tВремя расчета: {this.FinishTimeAlgorithm}\tЛучшее решение: {this.GetBestCandidate().DecValue}");
+
+                    //if (this.FinishTimeAlgorithm == "00:00:00.000")
+                    //    FinishTimeAlgorithm = GetRandomTime();
+
+                    DisplayResult.DisplayText($"Прогон №{run}\tВремя расчета: {FinishTimeAlgorithm}\tЛучшее решение: {GetBestCandidate().DecValue}");
                     resultCandidateList.Add(GetBestCandidate());
+                    TimeList.Add(FinishTimeAlgorithm);
                 }
 
+                DisplayResult.DisplayText($"Среднее   \tВремя расчета: {GetAvgFinishTime(TimeList)}\tЛучшее решение: {GetAvgBestCandidate(resultCandidateList).DecValue}");
                 DisplayResult.AddNewLine();
                 ResultDictionary.Add(selectionMethod, resultCandidateList);
             }
 
             propertyInfo.SetValue(AnalysisSetting, propertyValue);
+        }
+
+        /// <summary>
+        /// Получение локализованного названия метода селекции
+        /// </summary>
+        /// <param name="selectSelection">Метод селекции</param>
+        /// <returns>Локализованное название метода селекции</returns>
+        private string GetMethodName(object _selectSelection, Type _type)
+        {
+            // Получение списка всех элементов перечисления методов селекции
+            var enumList = Enum.GetValues(_type)
+           .Cast<Enum>()
+           .Select(value => new
+           {
+               (Attribute.GetCustomAttribute(value.GetType().GetField(value.ToString()), typeof(DescriptionAttribute)) as DescriptionAttribute).Description,
+               value
+           })
+           .OrderBy(item => item.value)
+           .ToList();
+
+            var selectItem = enumList.Find(g => g.value.ToString() == _selectSelection.ToString());
+            string methodName = selectItem.Description;
+
+            return methodName;
         }
 
     }
