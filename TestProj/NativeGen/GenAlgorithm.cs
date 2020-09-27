@@ -66,6 +66,11 @@ namespace TestProj.NativeGen
 
         public List<Candidate> FirstCandidateList { get; set; }
 
+        /// <summary>
+        /// Номер популяции, на котором алгоритм сошёлся
+        /// </summary>
+        public int NumberOfLastGeneneration { get; set; }
+
         public void ClearPopulation()
         {
             Population = new List<Candidate>();
@@ -181,7 +186,16 @@ namespace TestProj.NativeGen
                     }
 
                     AllBestCandidates.Add(Population);
+
+                    NumberOfLastGeneneration = generation;
+
+                    if (IsAlgorithmReachAccuracy())
+                    {
+                        break;
+                    }
                 }
+
+                //NumberOfLastGeneneration
 
                 if (AlgorithmSetting.IsCompareMethods)
                 {
@@ -193,6 +207,16 @@ namespace TestProj.NativeGen
             catch (Exception ex)
             {
             }
+        }
+
+        private bool IsAlgorithmReachAccuracy()
+        {
+            var bestCandidate = GetBestCandidate();
+
+            var isReachAccuracy = AlgorithmSetting.BestFitess - AlgorithmSetting.Accuracy <= bestCandidate.Fitness &&
+                                  AlgorithmSetting.BestFitess + AlgorithmSetting.Accuracy >= bestCandidate.Fitness;
+
+            return isReachAccuracy;
         }
 
         /// <summary>
@@ -1390,15 +1414,11 @@ namespace TestProj.NativeGen
         /// <returns>Список отобранных особей</returns>
         private List<Candidate> RouletteWithoutDuplicate(int _passItemCount, List<Candidate> _candidateList)
         {
-            var population = new List<Candidate>();
-
-            population.AddRange(_candidateList);
-
             // Итоговая популяция
             List<Candidate> totalPopulation = new List<Candidate>();
 
             var availableList = new List<Candidate>();
-            availableList.AddRange(population);
+            availableList.AddRange(_candidateList);
 
             if (availableList.Count == _passItemCount)
             {
@@ -1494,4 +1514,5 @@ namespace TestProj.NativeGen
 
         #endregion
     }
+   
 }
