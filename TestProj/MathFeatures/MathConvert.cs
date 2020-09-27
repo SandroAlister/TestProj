@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TestProj.NativeGen;
 
 namespace TestProj.MathFeatures
 {
@@ -295,25 +291,6 @@ namespace TestProj.MathFeatures
             }
 
             return selectionList;
-        }
-
-        public static dynamic ConvertMFK<T>(Type type, string str)
-        {
-            //Разделение входной строки на подстроки и удаление пробелов, запятых и пустых элементов
-            var valueList = str.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-            List<T> selectionList = new List<T>();
-
-            foreach (var item in valueList)
-            {
-                var selection = Enum.Parse(typeof(T), item);
-                selectionList.Add((T)selection);
-            }
-
-            List<dynamic> list = new List<dynamic>();
-            list.AddRange((dynamic)selectionList);
-
-            return list;
         }
 
         public static Type GetEnumType(string enumName)
