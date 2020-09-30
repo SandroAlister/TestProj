@@ -1086,7 +1086,7 @@ namespace TestProj
             {
                 chAnalysis.Series.Clear();
 
-                Series series = new Series("Идеал", ViewType.Line);
+                Series series = new Series("Точное решение", ViewType.Line);
 
                 for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
                 {

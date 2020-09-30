@@ -19,7 +19,7 @@ namespace TestProj.NativeGen
             AnalysisSetting = analysisSetting;
             AnalysisSetting.IsCompareMethods = true;
             ResultDictionary = new Dictionary<dynamic, List<Candidate>>();
-            TimeList = new List<string>();
+            NumberOfLastGenerationList = new List<int>();
         }
 
         /// <summary>
@@ -27,10 +27,15 @@ namespace TestProj.NativeGen
         /// </summary>
         public AnalysisSetting AnalysisSetting { get; set; }
 
-        //public List<Candidate> ResultCandidateList { get; set; }
+        /// <summary>
+        /// Результаты анализа для каждой стратегии
+        /// </summary>
         public Dictionary<dynamic, List<Candidate>> ResultDictionary { get; set; }
 
-        private List<string> TimeList { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        private List<int> NumberOfLastGenerationList { get; set; }
 
         /// <summary>
         /// Получение средней особи для метода селекции
@@ -48,19 +53,6 @@ namespace TestProj.NativeGen
             return avgBestCandidate;
         }
 
-        public string GetAvgFinishTime(List<string> timeList)
-        {
-            var t = timeList.Average(x => TimeSpan.Parse(x).Ticks);
-            var ticks = Convert.ToInt64(t);
-
-            var average = new TimeSpan(ticks);
-            var averageStr = average.ToString(@"hh\:mm\:ss\.fff");
-
-            return averageStr;
-        }
-
-        public Candidate AvgBestCandidate { get; set; }
-
         /// <summary>
         /// Запуск работы анализа выбранных методов
         /// </summary>
@@ -75,6 +67,7 @@ namespace TestProj.NativeGen
 
             //Получение первой популяции
             List<Candidate> firstCandidateList = GenerateFirstPopulation();
+            DisplayResult.DisplayPopulation("Начальная популяция:",firstCandidateList);
 
             foreach (var selectionMethod in AnalysisSetting.List)
             {
@@ -83,7 +76,6 @@ namespace TestProj.NativeGen
                 DisplayResult.DisplayText($"{GetMethodName(selectionMethod, selectionMethod.GetType())}");
 
                 propertyInfo.SetValue(AnalysisSetting, selectionMethod);
-                //DisplayResult.DisplayText();
 
                 for (int run = 1; run <= AnalysisSetting.RunAmount; run++)
                 {
@@ -92,15 +84,14 @@ namespace TestProj.NativeGen
                     Population.AddRange(firstCandidateList);
                     Process();
 
-                    //if (this.FinishTimeAlgorithm == "00:00:00.000")
-                    //    FinishTimeAlgorithm = GetRandomTime();
+                    var bestCandidate = GetBestCandidate();
 
-                    DisplayResult.DisplayText($"Прогон №{run}\tВремя расчета: {FinishTimeAlgorithm}\tЛучшее решение: {GetBestCandidate().DecValue}");
-                    resultCandidateList.Add(GetBestCandidate());
-                    TimeList.Add(FinishTimeAlgorithm);
+                    DisplayResult.DisplayText($"Прогон №{run}\tЛучшее решение: {bestCandidate.DecValue}\tНайдено за {NumberOfLastGeneneration} итераций");
+                    resultCandidateList.Add(bestCandidate);
+                    NumberOfLastGenerationList.Add(NumberOfLastGeneneration);
                 }
 
-                DisplayResult.DisplayText($"Среднее   \tВремя расчета: {GetAvgFinishTime(TimeList)}\tЛучшее решение: {GetAvgBestCandidate(resultCandidateList).DecValue}");
+                DisplayResult.DisplayText($"Среднее   \tЛучшее решение: {GetAvgBestCandidate(resultCandidateList).DecValue}\tНайдено за {Math.Round(NumberOfLastGenerationList.Average(), MidpointRounding.AwayFromZero)} итераций");
                 DisplayResult.AddNewLine();
                 ResultDictionary.Add(selectionMethod, resultCandidateList);
             }

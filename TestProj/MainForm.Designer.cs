@@ -1130,7 +1130,7 @@
             this.tabAnalysis.Controls.Add(this.lcAnalysis);
             this.tabAnalysis.Name = "tabAnalysis";
             this.tabAnalysis.Size = new System.Drawing.Size(1151, 473);
-            this.tabAnalysis.Text = "Анализ";
+            this.tabAnalysis.Text = "Оценка";
             // 
             // lcAnalysis
             // 
@@ -1189,7 +1189,7 @@
             this.sbAnalysis.Size = new System.Drawing.Size(347, 22);
             this.sbAnalysis.StyleController = this.lcAnalysis;
             this.sbAnalysis.TabIndex = 7;
-            this.sbAnalysis.Text = "Анализ";
+            this.sbAnalysis.Text = "Оценка";
             this.sbAnalysis.Click += new System.EventHandler(this.sbAnalysis_Click);
             // 
             // seRunAmount
